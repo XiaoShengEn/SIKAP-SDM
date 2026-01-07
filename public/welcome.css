@@ -1,0 +1,620 @@
+/* ===========================================================================
+   GLOBAL STYLE - TV MODE (NO SCROLL)
+=========================================================================== */
+html, body {
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: linear-gradient(135deg, #f0f4f8 0%, #e8f0f5 100%);
+    background-attachment: fixed;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(0, 51, 102, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 10px !important;
+}
+
+.header-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+}
+
+.header-grid h1 {
+    justify-self: center;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #003366 0%, #004080 100%);
+    color: #ffffff;
+    padding: 15px 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    margin-bottom: 15px;
+    flex-shrink: 0;
+}
+
+.page-header h1 {
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.page-header h1 i {
+    color: #FFD700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ===========================================================================
+   PROFIL PIMPINAN (RESPONSIVE)
+=========================================================================== */
+.img-profile {
+    width: 100%;
+    max-width: 180px;
+    height: 220px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 15px;
+    display: block;
+    margin: 0 auto;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.img-profile:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-item h4 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: #003366;
+    margin-top: 15px;
+    font-size: 1.4rem;
+}
+
+.carousel-item p {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 51, 102, 0.8);
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    opacity: 1;
+    background: rgba(0, 51, 102, 1);
+    transform: translateY(-50%) scale(1.1);
+}
+
+@media (max-width: 576px) {
+    .img-profile {
+        max-width: 150px;
+        height: 180px;
+        border-radius: 15px;
+    }
+
+    .profile-title { font-size: 18px; }
+    .profile-sub { font-size: 14px; }
+}
+
+/* ===========================================================================
+   WARNA TANGGAL TABEL
+=========================================================================== */
+.agenda-today td { background-color: rgba(0, 200, 0, 0.15) !important; }
+.agenda-tomorrow td { background-color: rgba(255, 200, 0, 0.15) !important; }
+.agenda-other td { background-color: rgba(180, 180, 180, 0.15) !important; }
+
+/* ===========================================================================
+   DISPLAY TANGGAL
+=========================================================================== */
+#dateDisplay {
+    background: linear-gradient(135deg, #001A33 0%, #000000 100%);
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 22px rgba(242, 183, 5, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* FIX UTAMA */
+    color: #FFFFFF;
+    text-shadow: 0 0 10px rgba(242, 183, 5, 0.6);
+    border-radius: 8px;
+    padding-left: 6px; /* biar nggak nempel border */
+}
+
+#dateDisplay i {
+    font-size: 18px;        /* icon sedikit lebih gede */
+}
+
+#dateText {
+    text-align: left;
+    line-height: 1.3;
+    font-size: 18px;
+}
+
+#dateDisplay:hover {
+    transform: scale(1.02);
+    border-left-color: #ffffff;
+    box-shadow: 0 4px 25px rgba(0, 212, 255, 0.5);
+}
+
+/* ===========================================================================
+   DISPLAY JAM
+=========================================================================== */
+#clockDisplay {
+    background: linear-gradient(135deg, #001A33 0%, #000000 100%);
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 22px rgba(242, 183, 5, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* FIX UTAMA */
+    color: #FFFFFF;
+    text-shadow: 0 0 10px rgba(242, 183, 5, 0.6);
+    border-radius: 8px;
+    padding-left: 6px; /* biar nggak nempel border */
+}
+
+#clockDisplay i {
+    font-size: 18px;        /* icon sedikit lebih gede */
+}
+
+#timeText {
+    text-align: left;
+    line-height: 1.3;
+    font-size: 20px;
+}
+
+#clockDisplay:hover {
+    transform: scale(1.02);
+    border-left-color: #ffffff;
+    box-shadow: 0 4px 25px rgba(0, 212, 255, 0.5);
+}
+
+/* ===========================================================================
+   TABEL RAPIH TENGAH
+=========================================================================== */
+.table th,
+.table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+    font-family: 'Poppins', sans-serif;
+}
+
+.table thead th {
+    background: linear-gradient(135deg, #003366 0%, #004080 100%);
+    color: #ffffff;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    padding: 10px 8px;
+    border: none;
+    font-family: 'Poppins', sans-serif;
+}
+
+.table tbody tr { transition: all 0.2s ease; }
+.table tbody tr:hover {
+    background-color: rgba(0, 51, 102, 0.05);
+    transform: scale(1.01);
+}
+
+.table tbody td {
+    padding: 15px;
+    border-color: #e9ecef;
+    font-weight: 500;
+}
+
+/* ===========================================================================
+   VIDEO PLAYER — FIX TOTAL (TV MODE: NGISI CARD, BUKAN ASPECT RATIO)
+=========================================================================== */
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;          /* FIX: ngisi card-body */
+    background: #000;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.video-player {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+
+    opacity: 0;
+    transition: opacity .6s ease-in-out;
+    pointer-events: none;
+}
+
+.video-player.active {
+    opacity: 1;
+    pointer-events: none;
+}
+
+/* ===========================================================================
+   THEME
+=========================================================================== */
+.bg-primary {
+    background-color: #003366 !important;
+    background: linear-gradient(135deg, #003366 0%, #004080 100%) !important;
+}
+
+.modern-card {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    background: #ffffff;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.modern-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.modern-card-header {
+    padding: 20px 25px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.modern-card-header h5 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.card-body { padding: 15px; }
+
+/* ===========================================================================
+   TV MODE - Layout Flexbox (FIX BIANG KEROK)
+=========================================================================== */
+
+/* ✅ FIX: row profil+video ada di HTML, wajib ada di CSS */
+.tv-content-row{
+    height: 440px;       /* FIXED — stabil di TV */
+    min-height: 440px;
+    margin-bottom: 38px; /* ± 1 cm jarak ke agenda */
+    display: flex;
+    align-items: stretch;
+}
+
+/* bootstrap col jadi flex container */
+.tv-col {
+    display: flex;
+    min-height: 0;
+}
+
+/* card jadi flex column */
+.tv-card {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* card-body ngisi sisa tinggi */
+.tv-card-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;   /* 🔥 PENTING */
+    justify-content: flex-start;
+}
+
+/* agenda card biar gak ketarik */
+.tv-agenda-card {
+    margin-top: 0;
+}
+
+.tv-agenda-card .card-body {
+    padding: 10px;
+}
+
+/* running text */
+.tv-running-text {
+    flex-shrink: 0;
+    padding: 10px 15px;
+}
+
+/* kecilin header sedikit (biar muat TV) */
+.modern-card-header { padding: 12px 20px; }
+.modern-card-header h5 { font-size: 1.1rem; margin: 0; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===========================================================================
+   TABEL RESPONSIVE
+=========================================================================== */
+@media (max-width: 768px) {
+    .table thead { font-size: 13px; }
+    .table tbody td { font-size: 12px; padding: 6px; }
+}
+
+/* ===========================================================================
+   RUNNING TEXT MARQUEE
+=========================================================================== */
+.running-text-container {
+    background: linear-gradient(135deg, #FFD700 0%, #FFC107 100%);
+    border-radius: 15px;
+    padding: 10px 18px; /* ✅ FIX: dari 15px 20px */
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    border: 2px solid rgba(0, 51, 102, 0.2);
+}
+
+#runningContainer {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+}
+
+#runningText {
+    display: inline-block;
+    padding-left: 100%;
+    font-weight: 700;
+    font-size: 1rem; /* ✅ FIX: dari 1.1rem */
+    color: #003366;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+@keyframes marquee {
+    from { transform: translateX(0%); }
+    to { transform: translateX(-100%); }
+}
+
+/* ===========================================================================
+   TV DISPLAY MODE — AGENDA AUTO SCROLL (NO SCROLLBAR)
+=========================================================================== */
+.agenda-scroll-container.tv-mode {
+    height: 260px; /* ✅ FIX: dari 280px */
+    overflow: hidden;
+    position: relative;
+}
+
+.sticky-thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* ===============================
+   FIX OVERLAY UNLOCK AUDIO
+=============================== */
+#unlockAudio {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: transparent;
+    pointer-events: auto;
+}
+
+#unlockAudio.hidden {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+.agenda-scroll-container.tv-mode::-webkit-scrollbar { display: none; }
+.agenda-scroll-container.tv-mode { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (min-width: 1200px) {
+    .agenda-scroll-container.tv-mode table { font-size: 1.05rem; }
+    .agenda-scroll-container.tv-mode th,
+    .agenda-scroll-container.tv-mode td { padding: 18px 14px; }
+}
+
+.agenda-scroll-container.tv-mode .table tbody tr:hover {
+    background-color: inherit !important;
+    transform: none !important;
+}
+
+.agenda-scroll-container.tv-mode .table th,
+.agenda-scroll-container.tv-mode .table td {
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.agenda-scroll-container.tv-mode tbody tr { height: 50px; }
+.agenda-empty-row { visibility: hidden; }
+
+.agenda-scroll-container.tv-mode tbody tr {
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* =======================
+   UNIVERSAL WRAPPER TABLE
+   - Pakai class ini untuk SEMUA wrapper tabel
+   - Scroll di wrapper
+   - Thead sticky
+   - Text panjang WRAP
+======================= */
+.admin-table-wrapper {
+    height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    position: relative;
+
+    /* cegah header “geser” karena scrollbar */
+    scrollbar-gutter: stable;
+}
+
+/* Table di dalam wrapper */
+.admin-table-wrapper table {
+    width: 100%;
+    table-layout: fixed;      /* kunci lebar kolom */
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Cell general */
+.admin-table-wrapper th,
+.admin-table-wrapper td {
+    padding: 12px 10px;
+    text-align: center !important;
+    vertical-align: middle !important;
+    border-right: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Hapus border kanan kolom terakhir */
+.admin-table-wrapper th:last-child,
+.admin-table-wrapper td:last-child {
+    border-right: none;
+}
+
+/* Baris terakhir tidak ada border bawah */
+.admin-table-wrapper tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Sticky header UNIVERSAL */
+.admin-table-wrapper thead th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, #003366 0%, #004080 100%) !important;
+    color: #ffffff !important;
+    border-bottom: 2px solid #343a40;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+/* Border header */
+.admin-table-wrapper thead th {
+    border-right: 1px solid rgba(255, 255, 255, 0.25);
+}
+.admin-table-wrapper thead th:last-child {
+    border-right: none;
+}
+
+/* Text panjang turun ke bawah (wrap) */
+.admin-table-wrapper tbody td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Aksi (tetap aman di klik, jangan z-index tinggi) */
+.td-aksi {
+    text-align: center !important;
+    vertical-align: middle !important;
+    position: relative;
+    z-index: 1;
+}
+
+.aksi-group {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.aksi-group .btn { position: relative; pointer-events: auto; }
+
+.aksi-group form { position: relative; margin: 0 !important; }
+.td-aksi form { margin: 0 !important; }
+
+/* Warna Agenda yang lebih kontras untuk TV */
+tr.agenda-today td { 
+    background-color: #d4edda !important; /* Hijau solid (soft) */
+    color: #0b2e13 !important;
+    border-bottom: 2px solid #c3e6cb;
+}
+
+tr.agenda-tomorrow td { 
+    background-color: #fff3cd !important; /* Kuning solid (soft) */
+    color: #856404 !important;
+    border-bottom: 2px solid #ffeeba;
+}
+
+tr.agenda-other td { 
+    background-color: #f8f9fa !important; 
+    color: #333 !important;
+}
+
+/* Row kosong untuk fixed height */
+.profil-empty-row,
+.video-empty-row,
+.agenda-empty-row,
+.runningtext-empty-row,
+.normaladmin-empty-row {
+    visibility: hidden;
+}
+
+/* Sticky thead class (kalau kamu pakai class sticky-thead-admin di <thead>) */
+.sticky-thead-admin {
+    position: sticky !important;
+    top: 0;
+    z-index: 100;
+    background: transparent; /* wrapper yang handle sticky */
+}
+
+.sticky-thead-admin th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(135deg, #003366 0%, #004080 100%) !important;
+    color: white;
+    border-bottom: 2px solid #343a40;
+}
