@@ -21,7 +21,7 @@
 
 <body>
 
-    <div class="container py-4">
+    <div class="container py-3">
 
         <div class="page-header mb-4 header-grid align-items-center">
 
@@ -46,13 +46,13 @@
         </div>
 
 
-        <div class="row g-3 mb-2 tv-content-row">
+        <div class="row tv-content-row mt-2 gx-1">
 
             <!-- PROFIL -->
             <div class="col-12 col-md-6">
                 <div class="card h-100 modern-card">
                     <div class="card-header bg-primary text-white modern-card-header">
-                        <h5 class="mb-0">
+                        <h5>
                             <i class="fas fa-user-tie me-2"></i> Profil Pimpinan
                         </h5>
                     </div>
@@ -117,7 +117,7 @@
         <!-- AGENDA (NO CRUD) -->
         <div class="card modern-card mt-4 tv-agenda-card">
             <div class="card-header bg-primary text-white modern-card-header">
-                <h5 class="mb-0">
+                <h5 >
                     <i class="fas fa-calendar-check me-2"></i> Agenda Biro SDM
                 </h5>
             </div>
@@ -164,7 +164,7 @@
 
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-3">
+                                <td colspan="5" class="text-start text-muted py-3">
                                     Belum ada agenda
                                 </td>
                             </tr>
@@ -210,7 +210,7 @@
             const carouselElement = document.querySelector('#carouselPimpinan');
             if (carouselElement) {
                 const carousel = new bootstrap.Carousel(carouselElement, {
-                    interval: 10000,
+                    interval: 1000,
                     ride: 'carousel',
                     wrap: true
                 });
@@ -297,7 +297,7 @@
             const rows = Array.from(tbody.querySelectorAll("tr"))
                 .filter(r => !r.querySelector("td[colspan]"));
 
-            const ROWS_PER_PAGE = 2;
+            const ROWS_PER_PAGE = 5;
             const DISPLAY_TIME = 4000;
             const FADE_DURATION = 500;
 
