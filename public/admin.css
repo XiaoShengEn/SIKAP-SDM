@@ -1062,3 +1062,41 @@ h5.fw-bold {
     background-color: #f8f9fa;
     border-color: #003366;
 }
+
+/* ==== PASSWORD TOGGLE CLEAN STYLE ==== */
+.password-wrapper .password-toggle {
+    border-left: none;
+}
+
+.password-wrapper .password-toggle i {
+    color: #6c757d;          /* abu halus */
+    font-size: 15px;
+}
+
+.password-wrapper .password-toggle.active i {
+    color: #212529;          /* hitam saat aktif */
+}
+
+.password-wrapper .password-toggle:focus {
+    box-shadow: none;
+}
+
+/* ===============================
+   🚫 Disable scroll khusus Running Text
+================================= */
+#runningtext #runningtextTableContainer {
+    max-height: none !important;
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
+}
+
+/* Hilangkan scrollbar (browser tertentu) */
+#runningtext #runningtextTableContainer::-webkit-scrollbar {
+    display: none;
+}
+
+/* Rapikan teks supaya tidak mendorong layout */
+#runningtext td {
+    white-space: normal;
+    word-break: break-word;
+}

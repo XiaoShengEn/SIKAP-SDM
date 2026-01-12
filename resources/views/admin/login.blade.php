@@ -35,7 +35,7 @@
                 <label class="form-label">PASSWORD</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                    <input type="password" name="password" class="form-control" placeholder="Masukkan Password" required>
+                    <input type="password" name="password_admin" maxlength="50" placeholder="Masukkan Password" class="form-control" required>
                 </div>
             </div>
 
