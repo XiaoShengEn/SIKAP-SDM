@@ -11,6 +11,7 @@ use App\Models\Pimpinan;
 use App\Models\Video;
 use App\Models\Kegiatan;
 use App\Models\RunningText;
+use Illuminate\Support\Facades\Hash;
 
 class SuperAdminController extends Controller
 {
@@ -26,7 +27,7 @@ class SuperAdminController extends Controller
         $videos = Video::all();
         $kegiatan = Kegiatan::orderBy('tanggal_kegiatan', 'asc')->get();
         $runningtext = RunningText::orderBy('id_text')->get();
-        $normaladmin = User::where('role_admin', 'normaladmin')->get();
+        $normaladmin = User::whereIn('role_admin', ['normaladmin', 'superadmin'])->get();
 
         return view('admin.superadmin', compact(
             'profil',
@@ -49,8 +50,8 @@ class SuperAdminController extends Controller
     public function profilStore(Request $request)
     {
         $request->validate([
-            'nama_pimpinan'    => 'required',
-            'jabatan_pimpinan' => 'required',
+            'nama_pimpinan'    => 'required|string|max:100',
+            'jabatan_pimpinan' => 'required|string|max:100',
             'foto_pimpinan'    => 'required|image|max:2048'
         ]);
 
@@ -70,9 +71,9 @@ class SuperAdminController extends Controller
     public function profilUpdate(Request $request, $id)
     {
         $request->validate([
-            'nama_pimpinan'    => 'required',
-            'jabatan_pimpinan' => 'required',
-            'foto_pimpinan'    => 'nullable|image|max:2048'
+            'nama_pimpinan'    => 'required|string|max:100',
+            'jabatan_pimpinan' => 'required|string|max:100',
+            'foto_pimpinan'    => 'required|image|max:2048'
         ]);
 
         $profil = DB::table('tb_profil')->where('id_profil', $id)->first();
@@ -139,7 +140,7 @@ class SuperAdminController extends Controller
     public function videoUpdate(Request $request, $id)
     {
         $request->validate([
-            'video_kegiatan'   => 'nullable|file|mimes:mp4,mov,avi|max:50000',
+            'video_kegiatan'   => 'required|file|mimes:mp4,mov,avi|max:50000',
             'video_keterangan' => 'required|string'
         ]);
 
@@ -175,40 +176,57 @@ class SuperAdminController extends Controller
         return back()->withFragment('video')->with('success', 'Video berhasil dihapus!');
     }
 
-    // ============================================================
-    // CRUD KEGIATAN
-    // ============================================================
-    public function kegiatanStore(Request $request)
-    {
-        Kegiatan::create([
-            'tanggal_kegiatan' => $request->tanggal_kegiatan,
-            'nama_kegiatan'    => $request->nama_kegiatan,
-            'disposisi'        => $request->disposisi,
-            'keterangan'       => $request->keterangan,
-            'tempat'           => $request->tempat,
-        ]);
+// ============================================================
+// CRUD KEGIATAN
+// ============================================================
+public function kegiatanStore(Request $request)
+{
+    $request->validate([
+        'tanggal_kegiatan' => 'required|date',
+        'nama_kegiatan'    => 'required|string|max:255',
+        'disposisi'        => 'nullable|string|max:150',
+        'tempat'           => 'nullable|string|max:150',
+        'keterangan'       => 'nullable|string|max:100', // ✅ LIMIT 100
+    ]);
 
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil ditambahkan!');
-    }
+    Kegiatan::create([
+        'tanggal_kegiatan' => $request->tanggal_kegiatan,
+        'nama_kegiatan'    => $request->nama_kegiatan,
+        'disposisi'        => $request->disposisi,
+        'keterangan'       => $request->keterangan,
+        'tempat'           => $request->tempat,
+    ]);
 
-    public function kegiatanUpdate(Request $request, $id)
-    {
-        Kegiatan::where('kegiatan_id', $id)->update([
-            'tanggal_kegiatan' => $request->tanggal_kegiatan,
-            'nama_kegiatan'    => $request->nama_kegiatan,
-            'disposisi'        => $request->disposisi,
-            'keterangan'       => $request->keterangan,
-            'tempat'           => $request->tempat,
-        ]);
+    return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil ditambahkan!');
+}
 
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil diperbarui!');
-    }
+public function kegiatanUpdate(Request $request, $id)
+{
+    $request->validate([
+        'tanggal_kegiatan' => 'required|date',
+        'nama_kegiatan'    => 'required|string|max:255',
+        'disposisi'        => 'nullable|string|max:150',
+        'tempat'           => 'nullable|string|max:150',
+        'keterangan'       => 'nullable|string|max:100', 
+    ]);
 
-    public function kegiatanDelete($id)
-    {
-        Kegiatan::where('kegiatan_id', $id)->delete();
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil dihapus!');
-    }
+    Kegiatan::where('kegiatan_id', $id)->update([
+        'tanggal_kegiatan' => $request->tanggal_kegiatan,
+        'nama_kegiatan'    => $request->nama_kegiatan,
+        'disposisi'        => $request->disposisi,
+        'keterangan'       => $request->keterangan,
+        'tempat'           => $request->tempat,
+    ]);
+
+    return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil diperbarui!');
+}
+
+public function kegiatanDelete($id)
+{
+    Kegiatan::where('kegiatan_id', $id)->delete();
+    return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil dihapus!');
+}
+
 
     // ============================================================
     // CRUD RUNNING TEXT
@@ -217,7 +235,7 @@ class SuperAdminController extends Controller
     public function runningtextStore(Request $request)
     {
         $request->validate([
-            'isi_text' => 'required',
+            'isi_text' => 'required|string|max:100',
         ]);
 
         RunningText::create([
@@ -230,7 +248,7 @@ class SuperAdminController extends Controller
     public function runningtextUpdate(Request $request, $id)
     {
         $request->validate([
-            'isi_text' => 'required',
+            'isi_text' => 'required|string|max:100',
         ]);
 
         RunningText::where('id_text', $id)->update([
@@ -253,17 +271,22 @@ class SuperAdminController extends Controller
     public function normalAdminStore(Request $request)
     {
         $request->validate([
-            'nama_admin' => 'required',
-            'email_admin' => 'required|email',
-            'password_admin' => 'required|min:4',
+            'nama_admin'      => 'required|string|max:100',
+            'bagian'          => 'required|string|max:100',
+            'nip'             => 'required|digits:18',
+            'password_admin'  => 'required|string|max:50',
+            'role_admin'      => 'required|in:normaladmin,superadmin',
         ]);
+
 
         User::create([
             'nama_admin'     => $request->nama_admin,
-            'email_admin'    => $request->email_admin,
-            'password_admin' => $request->password_admin,
-            'role_admin'     => 'normaladmin'
+            'bagian'         => $request->bagian,
+            'nip'            => $request->nip,
+            'password_admin' => Hash::make($request->password_admin),
+            'role_admin'     => $request->role_admin, 
         ]);
+
 
         return redirect()->back()->withFragment('normaladmin')->with('success', 'Normal admin berhasil ditambahkan!');
     }
@@ -273,16 +296,20 @@ class SuperAdminController extends Controller
         $admin = User::where('id_admin', $id)->firstOrFail();
 
         $request->validate([
-            'nama_admin'  => 'required|unique:tb_admin,nama_admin,' . $id . ',id_admin',
-            'email_admin' => 'required|email|unique:tb_admin,email_admin,' . $id . ',id_admin',
+            'nama_admin' => 'required|string|max:100|unique:tb_admin,nama_admin,' . $id . ',id_admin',
+            'bagian'     => 'required|string|max:100',
+            'nip'        => 'required|digits:18',
         ]);
 
-        $admin->nama_admin = $request->nama_admin;
-        $admin->email_admin = $request->email_admin;
 
-        if ($request->password_admin) {
-            $admin->password_admin = $request->password_admin;
+        $admin->nama_admin = $request->nama_admin;
+        $admin->bagian     = $request->bagian;
+        $admin->nip = $request->nip;
+
+        if ($request->filled('password_admin')) {
+            $admin->password_admin = Hash::make($request->password_admin);
         }
+
 
         $admin->save();
 

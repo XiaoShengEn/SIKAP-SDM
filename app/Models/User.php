@@ -22,6 +22,7 @@ class User extends Authenticatable
         'nama_admin',
         'nip',
         'password_admin',
+        'bagian', 
         'role_admin',
     ];
 
