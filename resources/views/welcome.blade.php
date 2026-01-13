@@ -117,7 +117,7 @@
         <!-- AGENDA (NO CRUD) -->
         <div class="card modern-card mt-4 tv-agenda-card">
             <div class="card-header bg-primary text-white modern-card-header">
-                <h5 >
+                <h5>
                     <i class="fas fa-calendar-check me-2"></i> Agenda Biro SDM
                 </h5>
             </div>
@@ -210,7 +210,7 @@
             const carouselElement = document.querySelector('#carouselPimpinan');
             if (carouselElement) {
                 const carousel = new bootstrap.Carousel(carouselElement, {
-                    interval: 1000,
+                    interval: 10000,
                     ride: 'carousel',
                     wrap: true
                 });
