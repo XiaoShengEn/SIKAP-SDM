@@ -15,7 +15,7 @@ class AuthController extends Controller
     public function loginProcess(Request $request)
     {
         $admin = DB::table('tb_admin')
-            ->where('email_admin', $request->email)
+            ->where('nip', $request->nip)
             ->first();
 
         if (!$admin) {
@@ -28,7 +28,7 @@ class AuthController extends Controller
 
         session([
             'admin_id' => $admin->id_admin,
-            'email'    => $admin->email_admin,
+            'nip'    => $admin->nip,
             'role'     => $admin->role_admin
         ]);
 
