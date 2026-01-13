@@ -37,9 +37,10 @@ class WelcomeController extends Controller
         // AGENDA (HANYA HARI INI & KE DEPAN)
         // ===============================
         $agendaKegiatan = DB::table('tb_kegiatan')
-            ->whereDate('tanggal_kegiatan', '>=', Carbon::today())
-            ->orderBy('tanggal_kegiatan', 'asc')
-            ->get();
+    ->whereDate('tanggal_kegiatan', '>=', Carbon::today('Asia/Jakarta'))
+    ->orderBy('tanggal_kegiatan', 'asc')
+    ->orderBy('jam', 'asc')
+    ->get();
 
         // ===============================
         // RUNNING TEXT

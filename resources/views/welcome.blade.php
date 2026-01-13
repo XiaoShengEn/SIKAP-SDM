@@ -124,7 +124,7 @@
 
             <div class="card-body">
                 <!-- PAKAI WRAPPER ADMIN + TV MODE -->
-                <div class="admin-table-wrapper agenda-scroll-container tv-mode" id="agendaScroll">
+                <div class="admin-table-wrapper-table agenda-scroll-container tv-mode" id="agendaScroll">
                     <table class="table table-hover mb-0">
                         <thead class="sticky-thead-admin">
                             <tr>
@@ -139,23 +139,34 @@
                         <tbody id="agendaTbody">
                             @forelse ($agendaKegiatan as $item)
 
-                            @php
-                            $today = \Carbon\Carbon::today('Asia/Jakarta');
+                       @php
+    $today = \Carbon\Carbon::today('Asia/Jakarta');
 
-                            $date = \Carbon\Carbon::parse($item->tanggal_kegiatan, 'Asia/Jakarta')
-                            ->startOfDay();
+    $date = \Carbon\Carbon::parse($item->tanggal_kegiatan, 'Asia/Jakarta')
+                ->startOfDay();
 
-                            if ($date->equalTo($today)) {
-                            $cls = 'agenda-today';
-                            } elseif ($date->equalTo($today->copy()->addDay())) {
-                            $cls = 'agenda-tomorrow';
-                            } else {
-                            $cls = 'agenda-other';
-                            }
-                            @endphp
+    // parsing jam (kalau ada)
+    $jam = $item->jam
+        ? \Carbon\Carbon::parse($item->jam, 'Asia/Jakarta')
+        : null;
+
+    if ($date->equalTo($today)) {
+        $cls = 'agenda-today';
+    } elseif ($date->equalTo($today->copy()->addDay())) {
+        $cls = 'agenda-tomorrow';
+    } else {
+        $cls = 'agenda-other';
+    }
+@endphp
+
 
                             <tr class="{{ $cls }}">
-                                <td>{{ $date->translatedFormat('l, d F Y') }}</td>
+                                <td>
+    {{ $date->translatedFormat('l, d F Y') }}
+    @if($jam)
+        | {{ $jam->format('H.i') }} WIB
+    @endif
+</td>
                                 <td>{{ $item->nama_kegiatan }}</td>
                                 <td>{{ $item->tempat }}</td>
                                 <td>{{ $item->disposisi }}</td>
@@ -175,12 +186,14 @@
             </div>
         </div>
 
-        <!-- RUNNING TEXT -->
-        <div class="running-text-container mt-2 tv-running-text">
-            <div id="runningContainer">
-                <span id="runningText">Loading...</span>
-            </div>
-        </div>
+       <!-- RUNNING TEXT -->
+<div class="running-text-container mt-2 tv-running-text">
+    <div id="runningContainer">
+        <span id="runningText">
+            {{ implode(' | ', $runningtext) }}
+        </span>
+    </div>
+</div>
 
     </div>
 
@@ -298,7 +311,7 @@
                 .filter(r => !r.querySelector("td[colspan]"));
 
             const ROWS_PER_PAGE = 5;
-            const DISPLAY_TIME = 4000;
+            const DISPLAY_TIME = 15000;
             const FADE_DURATION = 500;
 
             // sembunyikan semua dulu
@@ -354,28 +367,28 @@
     </script>
 
 
-    <!-- RUNNING TEXT -->
-    <script>
-        (function() {
-            const raw = @json($runningtext ?? []);
-            const data = raw.map(r => r.isi_text ?? r);
-            let i = 0;
+<!-- RUNNING TEXT -->
+<script>
+(function() {
+    const raw = @json($runningtext ?? []);
 
-            // FIX: ambil element by id (biar gak ngandelin global var)
-            const el = document.getElementById('runningText');
-            if (!el) return;
+    if (!raw.length) return;
 
-            function play() {
-                el.textContent = data[i] || "Tidak ada info";
-                el.style.animation = "none";
-                void el.offsetWidth;
-                el.style.animation = "marquee 12s linear";
-                i = (i + 1) % data.length;
-            }
-            play();
-            setInterval(play, 12000);
-        })();
-    </script>
+    // Gabungkan semua text dengan separator |
+    const mergedText = raw.join(' | ');
+
+    const el = document.getElementById('runningText');
+    if (!el) return;
+
+    el.textContent = mergedText;
+
+    // Jalankan animasi sekali terus looping via CSS animation
+    el.style.animation = "none";
+    void el.offsetWidth;
+    el.style.animation = "marquee 25s linear infinite";
+})();
+</script>
+
 
     <!-- ✅ OVERLAY TRANSPARAN (tangkep 1x klik/tap/OK) -->
     <div id="unlockAudio"

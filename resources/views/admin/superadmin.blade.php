@@ -115,7 +115,7 @@
 
 
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper mb-3" id="profilTableContainer">
+                                <div class="admin-table-wrapper-table mb-3" id="profilTableContainer">
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -219,7 +219,7 @@
                                 </div>
 
                                 <!-- TABLE WRAPPER -->
-                                <div class="admin-table-wrapper mb-3" id="videoTableContainer">
+                                <div class="admin-table-wrapper-table mb-3" id="videoTableContainer">
                                     <table id="videoTable" class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -337,7 +337,7 @@
 
 
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper mb-3" id="agendaTableContainer">
+                                <div class="admin-table-wrapper-table mb-3" id="agendaTableContainer">
                                     <table class="table table-hover mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -352,22 +352,32 @@
 
                                         <tbody id="agendaTbody">
                                             @foreach ($kegiatan as $k)
-                                            @php
-                                            $eventDate = Carbon\Carbon::parse($k->tanggal_kegiatan, 'Asia/Jakarta');
-                                            $dateFormatted = \Carbon\Carbon::parse($k->tanggal_kegiatan)->translatedFormat('l, d F Y');
+                                        @php
+    $eventDate = \Carbon\Carbon::parse($k->tanggal_kegiatan, 'Asia/Jakarta');
+    $dateFormatted = $eventDate->translatedFormat('l, d F Y');
 
-                                            if ($eventDate->isToday()) {
-                                            $statusClass = 'agenda-today';
-                                            } elseif ($eventDate->isTomorrow()) {
-                                            $statusClass = 'agenda-tomorrow';
-                                            } else {
-                                            $statusClass = 'agenda-other';
-                                            }
-                                            @endphp
+    // parsing jam
+    $jam = $k->jam
+        ? \Carbon\Carbon::parse($k->jam)->format('H.i')
+        : null;
+
+    if ($eventDate->isToday()) {
+        $statusClass = 'agenda-today';
+    } elseif ($eventDate->isTomorrow()) {
+        $statusClass = 'agenda-tomorrow';
+    } else {
+        $statusClass = 'agenda-other';
+    }
+@endphp
 
                                             <tr class="{{ $statusClass }}"
                                                 data-search="{{ strtolower($dateFormatted . ' ' . $k->nama_kegiatan . ' ' . $k->disposisi . ' ' . ($k->keterangan ?? '') . ' ' . $k->tempat) }}">
-                                                <td data-label="Tanggal">{{ $dateFormatted }}</td>
+                                                <td data-label="Tanggal">
+    {{ $dateFormatted }}
+    @if($jam)
+        | {{ $jam }} WIB
+    @endif
+</td>
                                                 <td data-label="Kegiatan">{{ $k->nama_kegiatan }}</td>
                                                 <td data-label="Tempat">{{ $k->tempat }}</td>
                                                 <td data-label="Disposisi">{{ $k->disposisi }}</td>
@@ -518,7 +528,7 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-users-cog me-2"></i> Normal Admin</h4>
+                                <h4 class="mb-0"><i class="fas fa-users-cog me-2"></i> Admin</h4>
                                 <span class="badge badge-light">{{ count($normaladmin) }} Data</span>
                             </div>
                         </div>
@@ -554,7 +564,7 @@
 
 
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper mb-3" id="normaladminTableContainer">
+                                <div class="admin-table-wrapper-table mb-3" id="normaladminTableContainer">
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -768,12 +778,22 @@
 
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label fw-bold">Tanggal</label>
-                                            <input type="date"
-                                                name="tanggal_kegiatan"
-                                                class="form-control"
-                                                required>
-                                        </div>
+    <label class="form-label fw-bold">Tanggal</label>
+    <input type="date"
+           name="tanggal_kegiatan"
+           class="form-control"
+           required>
+</div>
+
+<div class="col-md-6 mb-3">
+    <label class="form-label fw-bold">Jam</label>
+    <input type="time"
+           name="jam"
+           class="form-control"
+           required>
+</div>
+
+
 
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold">Nama Kegiatan</label>
@@ -789,7 +809,7 @@
                                             <input type="text"
                                                 name="tempat"
                                                 class="form-control"
-                                                maxlength="100">
+                                                maxlength="50">
                                         </div>
 
                                         <div class="col-md-6 mb-3">
@@ -797,7 +817,7 @@
                                             <input type="text"
                                                 name="disposisi"
                                                 class="form-control"
-                                                maxlength="100">
+                                                maxlength="20">
                                         </div>
 
                                         <div class="col-12 mb-3">
@@ -1120,43 +1140,69 @@
 
 
                 @foreach ($kegiatan as $k)
-                <div class="modal fade" id="modalEditKegiatan-{{ $k->kegiatan_id }}" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header bg-warning">
-                                <h5 class="modal-title">Edit Agenda</h5>
-                                <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
+<div class="modal fade" id="modalEditKegiatan-{{ $k->kegiatan_id }}" data-bs-backdrop="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Edit Agenda</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-                            <form action="{{ route('superadmin.kegiatan.update', $k->kegiatan_id) }}" method="POST">
-                                @csrf
-                                <div class="modal-body">
-                                    <label class="form-label">Tanggal:</label>
-                                    <input type="date" name="tanggal_kegiatan" class="form-control mb-2" value="{{ $k->tanggal_kegiatan }}">
+            <form action="{{ route('superadmin.kegiatan.update', $k->kegiatan_id) }}" method="POST">
+                @csrf
 
-                                    <label class="form-label">Nama Kegiatan:</label>
-                                    <input type="text" name="nama_kegiatan" class="form-control mb-2" maxlength="100" value="{{ $k->nama_kegiatan }}">
+                <div class="modal-body">
 
-                                    <label class="form-label">Tempat:</label>
-                                    <input type="text" name="tempat" class="form-control mb-2" maxlength="100" value="{{ $k->tempat }}">
+                    <label class="form-label">Tanggal:</label>
+                    <input type="date"
+                           name="tanggal_kegiatan"
+                           class="form-control mb-2"
+                           value="{{ \Carbon\Carbon::parse($k->tanggal_kegiatan)->format('Y-m-d') }}">
 
-                                    <label class="form-label">Disposisi:</label>
-                                    <input type="text" name="disposisi" class="form-control mb-2" maxlength="100" value="{{ $k->disposisi }}">
+                    <label class="form-label">Jam:</label>
+                    <input type="time"
+                           name="jam"
+                           class="form-control mb-2"
+                           value="{{ $k->jam ? \Carbon\Carbon::parse($k->jam)->format('H:i') : '' }}">
 
-                                    <label class="form-label">Keterangan:</label>
-                                    <textarea name="keterangan" class="form-control mb-2" maxlength="100">{{ $k->keterangan }}</textarea>
-                                </div>
+                    <label class="form-label">Nama Kegiatan:</label>
+                    <input type="text"
+                           name="nama_kegiatan"
+                           class="form-control mb-2"
+                           maxlength="100"
+                           value="{{ $k->nama_kegiatan }}">
 
-                                <div class="modal-footer">
-                                    <button class="btn btn-primary w-100" type="submit">
-                                        <i class="fas fa-save me-2"></i> Simpan Perubahan
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                    <label class="form-label">Tempat:</label>
+                    <input type="text"
+                           name="tempat"
+                           class="form-control mb-2"
+                           maxlength="100"
+                           value="{{ $k->tempat }}">
+
+                    <label class="form-label">Disposisi:</label>
+                    <input type="text"
+                           name="disposisi"
+                           class="form-control mb-2"
+                           maxlength="100"
+                           value="{{ $k->disposisi }}">
+
+                    <label class="form-label">Keterangan:</label>
+                    <textarea name="keterangan"
+                              class="form-control mb-2"
+                              maxlength="100">{{ $k->keterangan }}</textarea>
                 </div>
-                @endforeach
+
+                <div class="modal-footer">
+                    <button class="btn btn-primary w-100" type="submit">
+                        <i class="fas fa-save me-2"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endforeach
+
 
                 @foreach ($runningtext as $r)
                 <div class="modal fade" id="modalEditRunningText-{{ $r->id_text }}" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
