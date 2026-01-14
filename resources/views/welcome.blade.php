@@ -124,7 +124,7 @@
 
             <div class="card-body">
                 <!-- PAKAI WRAPPER ADMIN + TV MODE -->
-                <div class="admin-table-wrapper-table agenda-scroll-container tv-mode" id="agendaScroll">
+                <div class="admin-table-wrapper agenda-scroll-container tv-mode" id="agendaScroll">
                     <table class="table table-hover mb-0">
                         <thead class="sticky-thead-admin">
                             <tr>
@@ -138,8 +138,7 @@
 
                         <tbody id="agendaTbody">
                             @forelse ($agendaKegiatan as $item)
-
-                       @php
+                                                  @php
     $today = \Carbon\Carbon::today('Asia/Jakarta');
 
     $date = \Carbon\Carbon::parse($item->tanggal_kegiatan, 'Asia/Jakarta')
@@ -159,12 +158,11 @@
     }
 @endphp
 
-
                             <tr class="{{ $cls }}">
                                 <td>
     {{ $date->translatedFormat('l, d F Y') }}
     @if($jam)
-        | {{ $jam->format('H.i') }} WIB
+        - {{ $jam->format('H.i') }} WIB
     @endif
 </td>
                                 <td>{{ $item->nama_kegiatan }}</td>
@@ -311,7 +309,7 @@
                 .filter(r => !r.querySelector("td[colspan]"));
 
             const ROWS_PER_PAGE = 5;
-            const DISPLAY_TIME = 15000;
+            const DISPLAY_TIME = 4000;
             const FADE_DURATION = 500;
 
             // sembunyikan semua dulu
@@ -388,7 +386,6 @@
     el.style.animation = "marquee 25s linear infinite";
 })();
 </script>
-
 
     <!-- ✅ OVERLAY TRANSPARAN (tangkep 1x klik/tap/OK) -->
     <div id="unlockAudio"

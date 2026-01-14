@@ -640,6 +640,12 @@ stat-card-2 { border-left-color: #2E7D32; }
     border-bottom: 1px solid #e9ecef;
 }
 
+.admin-table-fixed {
+    height: 420px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
 /* Hapus border kanan kolom terakhir */
 .admin-table-wrapper th:last-child,
 .admin-table-wrapper td:last-child {
@@ -714,13 +720,13 @@ stat-card-2 { border-left-color: #2E7D32; }
 }
 
 /* Row kosong untuk fixed height */
-.profil-empty-row,
+/* .profil-empty-row,
 .video-empty-row,
 .agenda-empty-row,
 .runningtext-empty-row,
 .normaladmin-empty-row {
     visibility: hidden;
-}
+} */
 
 /* Sticky thead class (kalau kamu pakai class sticky-thead-admin di <thead>) */
 .sticky-thead-admin {
@@ -1063,6 +1069,96 @@ h5.fw-bold {
     border-color: #003366;
 }
 
+/* =========================
+   AGENDA TABLE FIX TOTAL
+========================= */
+
+/* wrapper tidak boleh melebar */
+#agendaTableContainer {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* tabel FIXED */
+#agendaTableContainer .table-fixed-agenda {
+    table-layout: fixed !important;
+    width: 100% !important;
+    border-collapse: collapse;
+}
+
+/* semua cell WAJIB wrap */
+#agendaTableContainer th,
+#agendaTableContainer td {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    vertical-align: top;
+}
+
+/* =========================
+   KUNCI LEBAR KOLOM
+========================= */
+#agendaTableContainer .col-tanggal { width: 170px; }
+#agendaTableContainer .col-kegiatan { width: 220px; }
+#agendaTableContainer .col-tempat { width: 160px; }
+#agendaTableContainer .col-disposisi { width: 140px; }
+#agendaTableContainer .col-keterangan { width: 240px; }
+#agendaTableContainer .col-aksi { width: 110px; }
+
+/* =========================
+   TEKS PANJANG AMAN
+========================= */
+#agendaTableContainer td {
+    max-width: 100%;
+}
+
+/* aksi tetap rapi */
+#agendaTableContainer .td-aksi {
+    white-space: nowrap !important;
+}
+
+/* tombol aksi tidak mendorong kolom */
+#agendaTableContainer .aksi-group {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+/* =========================
+   OPTIONAL – SCROLL ISI PANJANG
+========================= */
+#agendaTableContainer td[data-label="Kegiatan"],
+#agendaTableContainer td[data-label="Keterangan"] {
+    max-height: 5em;
+    overflow-y: auto;
+}
+
+/* =========================
+   AGENDA NAV FIX
+========================= */
+
+.agenda-nav-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+
+    margin-top: 24px;   /* jarak FIX dari tabel */
+    padding-bottom: 8px;
+
+    position: relative; /* anti ketarik layout */
+}
+
+/* tombolnya sendiri */
+.agenda-nav-wrapper .btn-nav-admin {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* ==== PASSWORD TOGGLE CLEAN STYLE ==== */
 .password-wrapper .password-toggle {
     border-left: none;
@@ -1099,4 +1195,124 @@ h5.fw-bold {
 #runningtext td {
     white-space: normal;
     word-break: break-word;
+}
+
+#agenda,
+#agenda * {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+}
+#profil .admin-table-wrapper,
+#profil .admin-table-wrapper * ,
+#profil .btn,
+#profil .btn * {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+}
+#profil .modern-card {
+    overflow: visible !important;
+}
+.profil-nav-wrapper {
+    height: 70px;              /* ruang tetap */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    margin-top: 20px;
+}
+
+.admin-table-wrapper-fluid {
+    width: 100%;
+    overflow: visible;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+}
+.profil-pagination-holder {
+    height: 80px;                 /* KUNCI TINGGI */
+    display: flex;
+    align-items: center;          /* TOMBOL SELALU TENGAH */
+    justify-content: center;
+    gap: 14px;
+
+    margin-top: 20px;
+    flex-shrink: 0;
+}
+
+#profil .profil-body {
+    position: relative;
+    padding-bottom: 90px; /* ruang untuk tombol */
+}
+
+#profil .profil-pagination-fixed {
+    position: absolute;
+    bottom: 20px;               /* POSISI TETAP */
+    left: 0;
+    right: 0;
+
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+
+    pointer-events: auto;
+}
+
+/* COUNTER NEMPEL KE INPUT */
+.counter-tight {
+    margin-top: 5px;   /* hampir nempel */
+    line-height: 1.2;
+    font-size: 12px;
+}
+
+.fixed-height {
+    max-height: 340px;   /* sesuaikan dengan 5 row */
+    overflow-y: auto;
+}
+
+.admin-table-wrapper-table {
+    /* KUNCI STRUKTUR */
+    min-height: 340px;          /* tinggi stabil (sesuai jumlah row) */
+    width: 100%;
+    
+    /* LARANG SCROLL */
+    overflow: hidden;           /* tidak boleh scroll vertikal */
+    overflow-x: hidden;         /* tidak boleh scroll horizontal */
+
+    /* VISUAL */
+    position: relative;
+}
+
+.admin-table-wrapper-table table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.td-long-text {
+    max-width: 280px;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.agenda-wrapper 
+ {
+    min-height: auto;        /* BIARKAN TINGGI ALAMI */
+    overflow: visible;       /* JANGAN POTONG ROW */
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* ===== RUNNING TEXT FINAL FIX ===== */
+.admin-table-wrapper-table.running-wrapper {
+    min-height: unset;
+    height: auto;
+    overflow: visible;
+}
+
+/* tabel tetap rapi */
+.admin-table-wrapper-table.running-wrapper table {
+    width: 100%;
+    table-layout: fixed;
 }
