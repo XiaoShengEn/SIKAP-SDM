@@ -9,11 +9,18 @@ use Carbon\Carbon;
 class WelcomeController extends Controller
 {
     public function index()
-    {
-        // ===== BYPASS DATABASE SAAT TESTING =====
-        if (App::environment('testing')) {
-            return view('welcome');
-        }
+{
+    Carbon::setLocale('id');
+
+    if (app()->environment('testing')) {
+        return view('welcome', [
+            'profil' => collect(),
+            'videos' => collect(),
+            'playlist' => [],
+            'agendaKegiatan' => collect(),
+            'runningtext' => [],
+        ]);
+    }
 
         // ===============================
         // SET BAHASA INDONESIA
