@@ -91,7 +91,7 @@
                         </div>
 
                         <div id="profilTableBody" class="collapse">
-                            <div class="card-body">
+                            <div class="card-body profil-body">
                                 <!-- SEARCH BOX -->
                                 <div class="mb-3 d-flex gap-2">
                                     <div class="input-group">
@@ -115,8 +115,8 @@
 
 
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper-table mb-3" id="profilTableContainer">
-                                    <table class="table table-hover align-middle mb-0">
+                                <div class="admin-table-wrapper-table fixed-height">
+    <table class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
                                                 <th>Foto</th>
@@ -158,14 +158,14 @@
                                 </div>
 
                                 <!-- NAVIGATION BUTTONS -->
-                                <div class="d-flex justify-content-center gap-2 mb-4">
-                                    <button class="btn-nav-admin btn-nav-prev-admin" id="profilPrevBtn" type="button">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </button>
-                                    <button class="btn-nav-admin btn-nav-next-admin" id="profilNextBtn" type="button">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </button>
-                                </div>
+                                <div class="profil-pagination-fixed">
+    <button class="btn-nav-admin btn-nav-prev-admin" id="profilPrevBtn" type="button">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="btn-nav-admin btn-nav-next-admin" id="profilNextBtn" type="button">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+</div>
                             </div>
                         </div>
                 </section>
@@ -219,7 +219,7 @@
                                 </div>
 
                                 <!-- TABLE WRAPPER -->
-                                <div class="admin-table-wrapper-table mb-3" id="videoTableContainer">
+                                <div class="admin-table-wrapper-fluid mb-3" id="videoTableContainer">
                                     <table id="videoTable" class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -337,18 +337,18 @@
 
 
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper-table mb-3" id="agendaTableContainer">
-                                    <table class="table table-hover mb-0">
-                                        <thead class="sticky-thead-admin">
-                                            <tr>
-                                                <th>Tanggal</th>
-                                                <th>Kegiatan</th>
-                                                <th>Tempat</th>
-                                                <th>Disposisi</th>
-                                                <th>Keterangan</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
+<div class="admin-table-wrapper-table agenda-wrapper">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="sticky-thead-admin">
+            <tr>
+                <th class="col-tanggal">Tanggal</th>
+                <th class="col-kegiatan">Kegiatan</th>
+                <th class="col-tempat">Tempat</th>
+                <th class="col-disposisi">Disposisi</th>
+                <th class="col-keterangan">Keterangan</th>
+                <th class="col-aksi">Aksi</th>
+            </tr>
+        </thead>
 
                                         <tbody id="agendaTbody">
                                             @foreach ($kegiatan as $k)
@@ -381,7 +381,9 @@
                                                 <td data-label="Kegiatan">{{ $k->nama_kegiatan }}</td>
                                                 <td data-label="Tempat">{{ $k->tempat }}</td>
                                                 <td data-label="Disposisi">{{ $k->disposisi }}</td>
-                                                <td data-label="Keterangan">{{ $k->keterangan }}</td>
+                                                <td data-label="Keterangan" class="td-long-text">
+    {{ $k->keterangan }}
+</td>
                                                 <td data-label="Aksi" class="td-aksi">
                                                     <div class="aksi-group">
                                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditKegiatan-{{ $k->kegiatan_id }}">
@@ -408,7 +410,7 @@
                                 </div>
 
                                 <!-- NAVIGATION BUTTONS -->
-                                <div class="d-flex justify-content-center gap-2 mb-4">
+                                <div class="agenda-nav-wrapper">
                                     <button class="btn-nav-admin btn-nav-prev-admin" id="agendaPrevBtn" type="button">
                                         <i class="fas fa-chevron-left"></i>
                                     </button>
@@ -465,9 +467,9 @@
                                 </div>
 
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper mb-3" id="runningtextTableContainer">
+                                <div class="admin-table-wrapper-table running-wrapper">
                                     <table class="table table-hover align-middle mb-0">
-                                        <thead class="sticky-thead-admin">
+                                        <thead>
                                             <tr>
                                                 <th>Isi Running Text</th>
                                                 <th>Aksi</th>
@@ -564,8 +566,8 @@
 
 
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper-table mb-3" id="normaladminTableContainer">
-                                    <table class="table table-hover align-middle mb-0">
+ <div class="admin-table-wrapper-table fixed-height">
+    <table class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
                                                 <th>Nama</th>
@@ -674,7 +676,7 @@
 
                                     <label class="form-label fw-bold">Nama:</label>
                                     <input type="text"
-                                        class="form-control mb-3"
+                                        class="form-control "
                                         name="nama_pimpinan"
                                         maxlength="100"
                                         oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
@@ -682,7 +684,7 @@
 
                                     <label class="form-label fw-bold">Jabatan:</label>
                                     <input type="text"
-                                        class="form-control mb-3"
+                                        class="form-control "
                                         name="jabatan_pimpinan"
                                         maxlength="100"
                                         oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
@@ -800,7 +802,7 @@
                                             <input type="text"
                                                 name="nama_kegiatan"
                                                 class="form-control"
-                                                maxlength="100"
+                                                maxlength="50"
                                                 required>
                                         </div>
 
@@ -825,7 +827,7 @@
                                             <textarea name="keterangan"
                                                 class="form-control"
                                                 rows="3"
-                                                maxlength="100"></textarea>
+                                                maxlength="50"></textarea>
                                         </div>
                                     </div>
 
@@ -844,7 +846,7 @@
                     </div>
                 </div>
 
-                {{-- Mrunning text --}}
+                {{-- Running text --}}
                 <div class="modal fade" id="modalTambahRunningText" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
@@ -868,10 +870,6 @@
                                         maxlength="100"
                                         placeholder="Maksimal 100 karakter..."
                                         required></textarea>
-
-                                    <small class="text-muted">
-                                        Maksimal 100 karakter
-                                    </small>
 
                                 </div>
 
@@ -932,7 +930,7 @@
                                             <input type="text"
                                                 name="nama_admin"
                                                 class="form-control"
-                                                maxlength="100"
+                                                maxlength="30"
                                                 required>
                                         </div>
 
@@ -941,7 +939,7 @@
                                             <input type="text"
                                                 name="bagian"
                                                 class="form-control"
-                                                maxlength="100"
+                                                maxlength="30"
                                                 required>
                                         </div>
 
@@ -949,11 +947,11 @@
                                             <label class="form-label fw-bold">Password</label>
                                             <div class="input-group password-wrapper">
                                                 <input type="password"
-                                                    name="password_admin"
-                                                    id="password_admin_modal"
-                                                    class="form-control"
-                                                    required>
-
+    name="password_admin"
+    id="password_admin_modal"
+    class="form-control"
+    maxlength="20"
+    required>
                                                 <button type="button"
                                                     class="btn btn-outline-secondary password-toggle"
                                                     data-target="password_admin_modal">
@@ -961,7 +959,6 @@
                                                 </button>
                                             </div>
                                         </div>
-
                                     </div>
 
                                 </div>
@@ -1002,7 +999,7 @@
                                     <label class="form-label fw-bold">Nama:</label>
                                     <input type="text"
                                         name="nama_pimpinan"
-                                        class="form-control mb-3"
+                                        class="form-control "
                                         maxlength="100"
                                         oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
@@ -1010,7 +1007,7 @@
                                     <label class="form-label fw-bold">Jabatan:</label>
                                     <input type="text"
                                         name="jabatan_pimpinan"
-                                        class="form-control mb-3"
+                                        class="form-control "
                                         maxlength="100"
                                         oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
@@ -1049,7 +1046,7 @@
 
                                     <label class="form-label fw-bold">Keterangan Video:</label>
                                     <textarea name="video_keterangan"
-                                        class="form-control mb-3"
+                                        class="form-control "
                                         rows="3"
                                         maxlength="100"
                                         required>{{ $v->video_keterangan }}</textarea>
@@ -1156,40 +1153,40 @@
                     <label class="form-label">Tanggal:</label>
                     <input type="date"
                            name="tanggal_kegiatan"
-                           class="form-control mb-2"
+                           class="form-control "
                            value="{{ \Carbon\Carbon::parse($k->tanggal_kegiatan)->format('Y-m-d') }}">
 
                     <label class="form-label">Jam:</label>
                     <input type="time"
                            name="jam"
-                           class="form-control mb-2"
+                           class="form-control "
                            value="{{ $k->jam ? \Carbon\Carbon::parse($k->jam)->format('H:i') : '' }}">
 
                     <label class="form-label">Nama Kegiatan:</label>
                     <input type="text"
                            name="nama_kegiatan"
-                           class="form-control mb-2"
-                           maxlength="100"
+                           class="form-control "
+                           maxlength="50"
                            value="{{ $k->nama_kegiatan }}">
 
                     <label class="form-label">Tempat:</label>
                     <input type="text"
                            name="tempat"
-                           class="form-control mb-2"
-                           maxlength="100"
+                           class="form-control "
+                           maxlength="50"
                            value="{{ $k->tempat }}">
 
                     <label class="form-label">Disposisi:</label>
                     <input type="text"
                            name="disposisi"
-                           class="form-control mb-2"
-                           maxlength="100"
+                           class="form-control "
+                           maxlength="20"
                            value="{{ $k->disposisi }}">
 
                     <label class="form-label">Keterangan:</label>
                     <textarea name="keterangan"
-                              class="form-control mb-2"
-                              maxlength="100">{{ $k->keterangan }}</textarea>
+                              class="form-control "
+                              maxlength="50">{{ $k->keterangan }}</textarea>
                 </div>
 
                 <div class="modal-footer">
@@ -1217,7 +1214,7 @@
                                 @csrf
                                 <div class="modal-body">
                                     <label class="form-label fw-bold">Isi Running Text:</label>
-                                    <textarea name="isi_text" class="form-control mb-3" rows="3" maxlength="100" required>{{ $r->isi_text }}</textarea>
+                                    <textarea name="isi_text" class="form-control " rows="3" maxlength="100" required>{{ $r->isi_text }}</textarea>
                                 </div>
 
                                 <div class="modal-footer">
@@ -1243,27 +1240,38 @@
                             <form action="{{ route('superadmin.normaladmin.update', $n->id_admin) }}" method="POST">
                                 @csrf
                                 <div class="modal-body">
+                                    <label class="form-label fw-bold">NIP</label>
+                                            <input type="number"
+                                                name="nip"
+                                                class="form-control"
+                                                inputmode="numeric"
+                                                oninput="this.value=this.value.replace(/\D/g,'').slice(0,18)"
+                                                placeholder="18 digit NIP">
+
                                     <label class="form-label fw-bold">Nama Admin:</label>
                                     <input type="text"
                                         name="nama_admin"
-                                        class="form-control mb-3"
-                                        maxlength="100"
+                                        class="form-control"
+                                        maxlength="30"
                                         value="{{ $n->nama_admin }}"
                                         required>
 
                                     <label class="form-label fw-bold">Bagian:</label>
                                     <input type="text"
                                         name="bagian"
-                                        class="form-control mb-3"
+                                        class="form-control "
+                                        maxlength="30"
                                         value="{{ $n->bagian }}"
                                         required>
 
                                     <label class="form-label fw-bold">Password (Kosongkan jika tidak diganti):</label>
-                                    <div class="input-group mb-3 password-wrapper">
+                                    <div class="input-group password-wrapper">
                                         <input type="password"
-                                            name="password_admin"
-                                            id="password_edit_{{ $n->id_admin }}"
-                                            class="form-control">
+    name="password_admin"
+    id="password_edit_{{ $n->id_admin }}"
+    class="form-control"
+    maxlength="20">
+
 
                                         <button type="button"
                                             class="btn btn-outline-secondary password-toggle"
@@ -1290,6 +1298,13 @@
     </main>
 
     <!-- JS -->
+    <!-- =========================================
+    = = = = = = 1. SIDEBAR NAVIGATION = = = = =
+    =  - Buka/tutup sidebar
+    =  - Auto close di HP
+    =  - Highlight menu sesuai posisi scroll
+    =  - Smooth scroll saat klik menu
+    ========================================= -->
     <script>
         (function() {
             const sidebar = document.getElementById('sidebar');
@@ -1326,10 +1341,11 @@
                 const scrollPosition = window.pageYOffset + 150;
 
                 sections.forEach(section => {
-                    const sectionTop = section.offsetTop;
-                    const sectionHeight = section.clientHeight;
-                    if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-                        current = section.getAttribute('id');
+                    if (
+                        scrollPosition >= section.offsetTop &&
+                        scrollPosition < section.offsetTop + section.clientHeight
+                    ) {
+                        current = section.id;
                     }
                 });
 
@@ -1355,12 +1371,11 @@
                     this.classList.add('active');
 
                     if (targetId.startsWith('#')) {
+                        e.preventDefault();
                         const targetSection = document.querySelector(targetId);
                         if (targetSection) {
-                            e.preventDefault();
-                            const offsetTop = targetSection.offsetTop - 100;
                             window.scrollTo({
-                                top: offsetTop,
+                                top: targetSection.offsetTop - 100,
                                 behavior: 'smooth'
                             });
                         }
@@ -1372,14 +1387,50 @@
 
             setActiveSidebarItem();
         })();
+    </script>
 
-        // user
+    <!-- =========================================
+    = = = = = = 2. REMEMBER LAST COLLAPSE = = =
+    =  - Menyimpan panel yang terakhir dibuka
+    =  - Saat reload tetap terbuka
+    ========================================= -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const lastOpen = localStorage.getItem("open-section");
+            if (lastOpen) {
+                const el = document.getElementById(lastOpen);
+                if (el) el.classList.add("show");
+            }
+
+            document.querySelectorAll('.collapse').forEach(c => {
+                c.addEventListener('show.bs.collapse', function() {
+                    localStorage.setItem("open-section", this.id);
+                });
+            });
+        });
+    </script>
+
+    <!-- =========================================
+    = = = = = 3. GLOBAL PAGINATION SYSTEM = = =
+    =  Dipakai oleh:
+    =   - Profil
+    =   - Video
+    =   - Agenda
+    =   - Running Text
+    =   - Normal Admin
+    =
+    =  Fungsi:
+    =   - Pagination
+    =   - Search
+    =   - Menjaga tinggi tabel stabil (row kosong)
+    ========================================= -->
+    <script>
         const rowsPerPageMap = {
             profil: 3,
             video: 2,
             agenda: 4,
             runningtext: 6,
-            normaladmin: 5,
+            normaladmin: 4,
         };
 
         function initTablePagination(tableName) {
@@ -1398,14 +1449,11 @@
 
             let filteredRows = [...allDataRows];
             let currentPage = 0;
-
-
             const rowsPerPage = rowsPerPageMap[tableName] || 4;
 
             const emptyRowClass = tableName + "-empty-row";
-            const existingEmptyRows = Array.from(tbody.querySelectorAll("tr." + emptyRowClass));
-
-            const firstDataRow = allDataRows.find(row => row.querySelectorAll("td").length > 0);
+            const existingEmptyRows = Array.from(tbody.querySelectorAll("." + emptyRowClass));
+            const firstDataRow = allDataRows[0];
             const colCount = firstDataRow ? firstDataRow.querySelectorAll("td").length : 6;
 
             if (existingEmptyRows.length < rowsPerPage) {
@@ -1413,99 +1461,85 @@
                 for (let i = 0; i < rowsToAdd; i++) {
                     const emptyRow = document.createElement("tr");
                     emptyRow.className = emptyRowClass;
-                    emptyRow.innerHTML = `<td colspan="${colCount}" style="height: 60px; border: none;"></td>`;
+                    emptyRow.innerHTML = `<td colspan="${colCount}" style="height:60px;border:none;"></td>`;
                     tbody.appendChild(emptyRow);
                 }
             }
 
-            const emptyRows = Array.from(tbody.querySelectorAll("tr." + emptyRowClass));
+            const emptyRows = Array.from(tbody.querySelectorAll("." + emptyRowClass));
 
             function showPage(page) {
                 const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-
                 if (page < 0) page = 0;
-                if (totalPages === 0) page = 0;
                 if (page >= totalPages && totalPages > 0) page = totalPages - 1;
 
                 currentPage = page;
 
-                allDataRows.forEach(row => row.style.display = 'none');
-                emptyRows.forEach(row => row.style.display = 'none');
+                allDataRows.forEach(r => r.style.display = 'none');
+                emptyRows.forEach(r => r.style.display = 'none');
 
-                const startIndex = currentPage * rowsPerPage;
-                const endIndex = startIndex + rowsPerPage;
-                const rowsToShow = filteredRows.slice(startIndex, endIndex);
+                const start = currentPage * rowsPerPage;
+                const end = start + rowsPerPage;
+                const visible = filteredRows.slice(start, end);
 
-                rowsToShow.forEach(row => row.style.display = 'table-row');
+                visible.forEach(r => r.style.display = 'table-row');
 
-                const emptyRowsToShow = emptyRows.slice(0, rowsPerPage - rowsToShow.length);
-                emptyRowsToShow.forEach(row => row.style.display = 'table-row');
+                const filler = emptyRows.slice(0, rowsPerPage - visible.length);
+                filler.forEach(r => r.style.display = 'table-row');
 
                 if (prevBtn && nextBtn) {
-                    prevBtn.disabled = (currentPage === 0);
-                    nextBtn.disabled = (currentPage >= totalPages - 1 || totalPages === 0);
-
-                    prevBtn.style.opacity = prevBtn.disabled ? '0.5' : '1';
-                    prevBtn.style.cursor = prevBtn.disabled ? 'not-allowed' : 'pointer';
-                    nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
-                    nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
+                    prevBtn.disabled = currentPage === 0;
+                    nextBtn.disabled = currentPage >= totalPages - 1 || totalPages === 0;
                 }
             }
 
             function performSearch() {
-                const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+                const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-                if (searchTerm === '') {
-                    filteredRows = [...allDataRows];
-                } else {
-                    filteredRows = allDataRows.filter(row => {
-                        const searchData = row.getAttribute('data-search') || '';
-                        return searchData.includes(searchTerm);
-                    });
-                }
+                filteredRows = term === '' ? [...allDataRows] :
+                    allDataRows.filter(row =>
+                        (row.getAttribute('data-search') || '').includes(term)
+                    );
 
                 currentPage = 0;
                 showPage(0);
             }
 
             if (searchInput) searchInput.addEventListener('input', performSearch);
-
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    if (currentPage > 0) showPage(currentPage - 1);
-                });
-            }
-
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-                    if (currentPage < totalPages - 1) showPage(currentPage + 1);
-                });
-            }
+            if (prevBtn) prevBtn.addEventListener('click', () => showPage(currentPage - 1));
+            if (nextBtn) nextBtn.addEventListener('click', () => {
+                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+                if (currentPage < totalPages - 1) showPage(currentPage + 1);
+            });
 
             showPage(0);
-
         }
+
         document.addEventListener('DOMContentLoaded', function() {
             const tables = ['profil', 'video', 'agenda', 'runningtext', 'normaladmin'];
 
-            tables.forEach(tableName => {
-                initTablePagination(tableName);
+            tables.forEach(name => {
+                initTablePagination(name);
 
-                const clearBtn = document.getElementById(tableName + 'ClearSearch');
-                const searchInput = document.getElementById(tableName + 'Search');
+                const clearBtn = document.getElementById(name + 'ClearSearch');
+                const searchInput = document.getElementById(name + 'Search');
 
                 if (clearBtn && searchInput) {
                     clearBtn.addEventListener('click', () => {
                         searchInput.value = '';
-                        initTablePagination(tableName);
+                        initTablePagination(name);
                     });
                 }
             });
         });
     </script>
 
-    <script>
+    <!-- =========================================
+    = = = = = = 5. VIDEO SECTION = = = = =
+    =  - Counter textarea modal tambah video
+    =  - Counter textarea edit video
+    ========================================= -->
+        <script>
         const videoModalTextarea = document.getElementById('video_keterangan_modal');
         const videoModalCounter = document.getElementById('videoModalCounter');
 
@@ -1514,93 +1548,111 @@
                 videoModalCounter.innerText = videoModalTextarea.value.length;
             });
         }
-    </script>
 
-
-    <script>
-        document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.password-toggle');
-            if (!btn) return;
-
-            const targetId = btn.dataset.target;
-            const input = document.getElementById(targetId);
-            if (!input) return;
-
-            const isPassword = input.type === 'password';
-
-            input.type = isPassword ? 'text' : 'password';
-
-            // hanya toggle class active (tanpa ganti icon)
-            btn.classList.toggle('active', isPassword);
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach(input => {
-
-                const max = parseInt(input.getAttribute('maxlength'));
-                if (!max) return;
-
-                const counter = document.createElement('small');
-                counter.className = 'text-muted d-block text-start';
-                input.after(counter);
-
-                function updateCounter() {
-                    let length = input.value.length;
-
-                    if (length > max) {
-                        input.value = input.value.slice(0, max);
-                        length = max;
-                    }
-
-                    counter.innerText = `${length}/${max} karakter`;
-
-                    if (length >= max) {
-                        counter.style.color = 'red';
-                    } else {
-                        counter.style.color = '';
-                    }
-                }
-
-                input.addEventListener('input', updateCounter);
-                updateCounter();
-            });
-
-        });
-    </script>
-
-    <script>
         document.querySelectorAll('.video-edit-textarea').forEach(textarea => {
-            const counterId = textarea.dataset.counter;
-            const counterEl = document.getElementById(counterId);
-
+            const counterEl = document.getElementById(textarea.dataset.counter);
             textarea.addEventListener('input', () => {
                 counterEl.innerText = textarea.value.length;
             });
         });
     </script>
 
-    <!-- <script>
-        let timeout;
-        const INACTIVITY_TIME = 1 * 60 * 1000; // 5 menit
+    <!-- =========================================
+    = = = = 9. PASSWORD VISIBILITY TOGGLE = =
+    =  - Show / hide password
+    ========================================= -->
+    <script>
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.password-toggle');
+            if (!btn) return;
 
-        function resetTimer() {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                window.location.href = "{{ url('/logout') }}";
-            }, INACTIVITY_TIME);
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            btn.classList.toggle('active', isPassword);
+        });
+    </script>
+
+
+
+    <!-- =========================================
+    = = = = 10. GLOBAL MAXLENGTH COUNTER = =
+    =  - Semua input/textarea dengan maxlength
+    =  - Menampilkan counter
+    ========================================= -->
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach(input => {
+        const max = parseInt(input.getAttribute('maxlength'));
+        if (!max) return;
+
+        const counter = document.createElement('small');
+        counter.className = 'text-muted d-block text-start counter-tight';
+
+        // 🔑 CEK APAKAH INPUT ADA DI INPUT-GROUP
+        const inputGroup = input.closest('.input-group');
+
+        if (inputGroup) {
+            inputGroup.after(counter); // TARUH SETELAH INPUT-GROUP
+        } else {
+            input.after(counter); // NORMAL
         }
 
-        // List aktivitas yang dianggap "aktif"
-        window.addEventListener('mousemove', resetTimer);
-        window.addEventListener('keydown', resetTimer);
-        window.addEventListener('click', resetTimer);
-        window.addEventListener('scroll', resetTimer);
-        window.addEventListener('touchstart', resetTimer);
+        function updateCounter() {
+            let length = input.value.length;
+            if (length > max) {
+                input.value = input.value.slice(0, max);
+                length = max;
+            }
 
-        // mulai timer pertama
-        resetTimer();
+            counter.innerText = `${length}/${max} karakter`;
+            counter.style.color = length >= max ? 'red' : '';
+        }
+
+        input.addEventListener('input', updateCounter);
+        updateCounter();
+    });
+});
+</script>
+
+
+    <!-- ============================================================
+     AUTO LOGOUT BERDASARKAN KETIDAKAKTIFAN USER
+     ------------------------------------------------------------
+     Fungsi:
+     - Menghitung waktu tidak ada aktivitas user
+     - Jika melewati batas waktu, user otomatis logout
+     
+     Aktivitas yang dianggap aktif:
+     - Mouse bergerak
+     - Keyboard ditekan
+     - Click
+     - Scroll
+     - Touch (untuk device mobile)
+    ============================================================ -->
+
+    <!-- <script>
+        let autoLogoutTimer;
+        const AUTO_LOGOUT_INTERVAL = 5 * 60 * 1000; // Waktu tidak aktif sebelum logout (5 menit)
+
+        function resetAutoLogoutTimer() {
+            clearTimeout(autoLogoutTimer);
+            autoLogoutTimer = setTimeout(() => {
+                window.location.href = "{{ url('/logout') }}";
+            }, AUTO_LOGOUT_INTERVAL);
+        }
+
+        // Aktivitas yang dianggap sebagai aktivitas pengguna
+        window.addEventListener('mousemove', resetAutoLogoutTimer);
+        window.addEventListener('keydown', resetAutoLogoutTimer);
+        window.addEventListener('click', resetAutoLogoutTimer);
+        window.addEventListener('scroll', resetAutoLogoutTimer);
+        window.addEventListener('touchstart', resetAutoLogoutTimer);
+
+        // Mulai timer pertama kali
+        resetAutoLogoutTimer();
     </script> -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
