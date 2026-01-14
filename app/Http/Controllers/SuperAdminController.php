@@ -183,14 +183,16 @@ public function kegiatanStore(Request $request)
 {
     $request->validate([
         'tanggal_kegiatan' => 'required|date',
+        'jam'            => 'required|date_format:H:i',
         'nama_kegiatan'    => 'required|string|max:255',
-        'disposisi'        => 'nullable|string|max:150',
-        'tempat'           => 'nullable|string|max:150',
-        'keterangan'       => 'nullable|string|max:100', // ✅ LIMIT 100
+        'disposisi'        => 'nullable|string|max:20',
+        'tempat'           => 'nullable|string|max:50',
+        'keterangan'       => 'nullable|string|max:100', 
     ]);
 
     Kegiatan::create([
         'tanggal_kegiatan' => $request->tanggal_kegiatan,
+        'jam'            => $request->jam,
         'nama_kegiatan'    => $request->nama_kegiatan,
         'disposisi'        => $request->disposisi,
         'keterangan'       => $request->keterangan,
@@ -203,23 +205,38 @@ public function kegiatanStore(Request $request)
 public function kegiatanUpdate(Request $request, $id)
 {
     $request->validate([
-        'tanggal_kegiatan' => 'required|date',
+        'tanggal_kegiatan' => 'nullable|date',
+        'jam'              => 'nullable|date_format:H:i',
         'nama_kegiatan'    => 'required|string|max:255',
-        'disposisi'        => 'nullable|string|max:150',
-        'tempat'           => 'nullable|string|max:150',
-        'keterangan'       => 'nullable|string|max:100', 
+        'disposisi'        => 'nullable|string|max:20',
+        'tempat'           => 'nullable|string|max:50',
+        'keterangan'       => 'nullable|string|max:100',
     ]);
 
-    Kegiatan::where('kegiatan_id', $id)->update([
-        'tanggal_kegiatan' => $request->tanggal_kegiatan,
-        'nama_kegiatan'    => $request->nama_kegiatan,
-        'disposisi'        => $request->disposisi,
-        'keterangan'       => $request->keterangan,
-        'tempat'           => $request->tempat,
-    ]);
+    // ✅ Field wajib
+    $data = [
+        'nama_kegiatan' => $request->nama_kegiatan,
+        'disposisi'     => $request->disposisi,
+        'keterangan'    => $request->keterangan,
+        'tempat'        => $request->tempat,
+    ];
+
+    // ✅ Update tanggal hanya kalau dikirim
+    if ($request->filled('tanggal_kegiatan')) {
+        $data['tanggal_kegiatan'] = $request->tanggal_kegiatan;
+    }
+
+    // ✅ Update jam hanya kalau dikirim
+    if ($request->filled('jam')) {
+        $data['jam'] = $request->jam;
+    }
+
+    Kegiatan::where('kegiatan_id', $id)->update($data);
 
     return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil diperbarui!');
 }
+
+
 
 public function kegiatanDelete($id)
 {
