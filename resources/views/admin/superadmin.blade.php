@@ -1161,7 +1161,9 @@
                                 <button class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
 
-                            <form action="{{ route('superadmin.kegiatan.update', $k->kegiatan_id) }}" method="POST">
+                            <form action="{{ route('superadmin.kegiatan.update', $k->kegiatan_id) }}"
+                                method="POST"
+                                class="agenda-edit-form">
                                 @csrf
 
                                 <div class="modal-body">
@@ -1480,6 +1482,7 @@
 
             let filteredRows = [...allDataRows];
             let currentPage = 0;
+            window.__paginationState = window.__paginationState || {};
             const rowsPerPage = rowsPerPageMap[tableName] || 4;
 
             const emptyRowClass = tableName + "-empty-row";
@@ -1505,6 +1508,8 @@
                 if (page >= totalPages && totalPages > 0) page = totalPages - 1;
 
                 currentPage = page;
+                window.__paginationState[tableName] = currentPage;
+
 
                 allDataRows.forEach(r => r.style.display = 'none');
                 emptyRows.forEach(r => r.style.display = 'none');
@@ -1543,7 +1548,14 @@
                 if (currentPage < totalPages - 1) showPage(currentPage + 1);
             });
 
-            showPage(0);
+            const savedPage = sessionStorage.getItem(tableName + "_lastPage");
+
+                if (savedPage !== null) {
+                    showPage(parseInt(savedPage));
+                    sessionStorage.removeItem(tableName + "_lastPage");
+                } else {
+                    showPage(0);
+                }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -1564,6 +1576,31 @@
             });
         });
     </script>
+
+ <!-- =========================================
+    = = = = = = ++++ Biar Setelah Edit Tidak Balik Ke Awal = = = = =
+    ========================================= -->
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const tableName = "agenda";
+
+    document.querySelectorAll(".agenda-edit-form").forEach(form => {
+        form.addEventListener("submit", () => {
+
+            if (window.__paginationState && window.__paginationState[tableName] !== undefined) {
+                sessionStorage.setItem(
+                    tableName + "_lastPage",
+                    window.__paginationState[tableName]
+                );
+            }
+
+        });
+    });
+
+});
+</script>
+
 
     <!-- =========================================
     = = = = = = 5. VIDEO SECTION = = = = =
