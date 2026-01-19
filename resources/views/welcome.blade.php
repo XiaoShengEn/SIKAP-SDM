@@ -156,7 +156,7 @@
                             }
                             @endphp
 
-                            <tr class="{{ $cls }}">
+                            <tr class="{{ $cls }}" {{ $cls === 'agenda-today' ? 'data-pinned=true' : '' }}>
                                 <td>
                                     {{ $date->translatedFormat('l, d F Y') }}
                                     @if($jam)
@@ -299,107 +299,130 @@
 
     <!-- 🔥 AUTO SCROLL TV MODE - GRUP 4 ROW DENGAN FADE -->
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const agendaScroll = document.getElementById("agendaScroll");
-            const tbody = document.getElementById("agendaTbody");
+document.addEventListener("DOMContentLoaded", () => {
+    const agendaScroll = document.getElementById("agendaScroll");
+    const tbody = document.getElementById("agendaTbody");
 
-            if (!agendaScroll || !tbody) return;
+    if (!agendaScroll || !tbody) return;
 
-            const rows = Array.from(tbody.querySelectorAll("tr"))
-                .filter(r => !r.querySelector("td[colspan]"));
+    const allRows = Array.from(tbody.querySelectorAll("tr"))
+        .filter(r => !r.querySelector("td[colspan]"));
 
-            if (!rows.length) return;
+    if (!allRows.length) return;
 
-            const DISPLAY_TIME = 6000;
-            const FADE_DURATION = 500;
+    // =========================
+    // PINNED (AGENDA HARI INI)
+    // =========================
+    const pinnedRows = allRows.filter(r => r.dataset.pinned === "true");
+    const scrollRows = allRows.filter(r => r.dataset.pinned !== "true");
 
-            /* RESET */
-            rows.forEach(r => {
-                r.style.display = "table-row";
-                r.style.opacity = "1";
-                r.style.transform = "none";
+    const DISPLAY_TIME = 6000;
+    const FADE_DURATION = 500;
+
+    // RESET
+    allRows.forEach(r => {
+        r.style.display = "table-row";
+        r.style.opacity = "1";
+        r.style.transform = "none";
+    });
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+
+            const thead = agendaScroll.querySelector("thead");
+            const theadHeight = thead ? thead.offsetHeight : 0;
+
+            const pinnedHeight = pinnedRows.reduce((sum, r) => sum + r.offsetHeight, 0);
+
+            const maxHeight =
+                agendaScroll.clientHeight -
+                theadHeight -
+                pinnedHeight -
+                6; // buffer
+
+            // =========================
+            // BUILD GROUPS (NON PINNED)
+            // =========================
+            const groups = [];
+            let current = [];
+            let height = 0;
+
+            scrollRows.forEach(row => {
+                const h = row.offsetHeight;
+
+                if (h > maxHeight) {
+                    if (current.length) groups.push(current);
+                    groups.push([row]);
+                    current = [];
+                    height = 0;
+                    return;
+                }
+
+                if (height + h > maxHeight && current.length) {
+                    groups.push(current);
+                    current = [];
+                    height = 0;
+                }
+
+                current.push(row);
+                height += h;
             });
 
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
+            if (current.length) groups.push(current);
 
-                    const thead = agendaScroll.querySelector("thead");
-                    const theadHeight = thead ? thead.offsetHeight : 0;
+            // =========================
+            // DISPLAY CONTROL
+            // =========================
 
-                    /* HEIGHT REAL (ANTI KE POTONG) */
-                    const maxHeight =
-                        agendaScroll.clientHeight -
-                        theadHeight -
-                        6; // buffer aman
+            // hide semua non-pinned
+            scrollRows.forEach(r => {
+                r.style.display = "none";
+                r.style.opacity = "0";
+            });
 
-                    const groups = [];
-                    let current = [];
-                    let height = 0;
+            // pinned selalu tampil
+            pinnedRows.forEach(r => {
+                r.style.display = "table-row";
+                r.style.opacity = "1";
+            });
 
-                    rows.forEach(row => {
-                        const h = row.offsetHeight;
+            if (!groups.length) return;
 
-                        /* kalau 1 row lebih tinggi dari layar → tampil sendiri */
-                        if (h > maxHeight) {
-                            if (current.length) groups.push(current);
-                            groups.push([row]);
-                            current = [];
-                            height = 0;
-                            return;
-                        }
+            let index = 0;
 
-                        if (height + h > maxHeight && current.length) {
-                            groups.push(current);
-                            current = [];
-                            height = 0;
-                        }
+            function showGroup(i) {
+                scrollRows.forEach(r => r.style.opacity = "0");
 
-                        current.push(row);
-                        height += h;
-                    });
+                setTimeout(() => {
+                    scrollRows.forEach(r => r.style.display = "none");
 
-                    if (current.length) groups.push(current);
+                    if (!groups[i]) return;
 
-                    /* HIDE SEMUA */
-                    rows.forEach(r => {
-                        r.style.display = "none";
+                    groups[i].forEach(r => {
+                        r.style.display = "table-row";
                         r.style.opacity = "0";
                     });
 
-                    let index = 0;
+                    requestAnimationFrame(() => {
+                        groups[i].forEach(r => r.style.opacity = "1");
+                    });
 
-                    function showGroup(i) {
-                        rows.forEach(r => r.style.opacity = "0");
+                }, FADE_DURATION);
+            }
 
-                        setTimeout(() => {
-                            rows.forEach(r => r.style.display = "none");
+            showGroup(0);
+            index = 1;
 
-                            if (!groups[i]) return;
+            setInterval(() => {
+                showGroup(index);
+                index = (index + 1) % groups.length;
+            }, DISPLAY_TIME + FADE_DURATION);
 
-                            groups[i].forEach(r => {
-                                r.style.display = "table-row";
-                                r.style.opacity = "0";
-                            });
-
-                            requestAnimationFrame(() => {
-                                groups[i].forEach(r => r.style.opacity = "1");
-                            });
-
-                        }, FADE_DURATION);
-                    }
-
-                    showGroup(0);
-                    index = 1;
-
-                    setInterval(() => {
-                        showGroup(index);
-                        index = (index + 1) % groups.length;
-                    }, DISPLAY_TIME + FADE_DURATION);
-
-                });
-            });
         });
-    </script>
+    });
+});
+</script>
+
 
     <!-- RUNNING TEXT -->
     <script>
