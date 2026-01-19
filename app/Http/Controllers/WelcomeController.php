@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -9,6 +10,18 @@ class WelcomeController extends Controller
 {
     public function index()
     {
+        Carbon::setLocale('id');
+
+        if (app()->environment('testing')) {
+            return view('welcome', [
+                'profil' => collect(),
+                'videos' => collect(),
+                'playlist' => [],
+                'agendaKegiatan' => collect(),
+                'runningtext' => [],
+            ]);
+        }
+
         // ===============================
         // SET BAHASA INDONESIA
         // ===============================
@@ -37,10 +50,10 @@ class WelcomeController extends Controller
         // AGENDA (HANYA HARI INI & KE DEPAN)
         // ===============================
         $agendaKegiatan = DB::table('tb_kegiatan')
-    ->whereDate('tanggal_kegiatan', '>=', Carbon::today('Asia/Jakarta'))
-    ->orderBy('tanggal_kegiatan', 'asc')
-    ->orderBy('jam', 'asc')
-    ->get();
+            ->whereDate('tanggal_kegiatan', '>=', Carbon::today('Asia/Jakarta'))
+            ->orderBy('tanggal_kegiatan', 'asc')
+            ->orderBy('jam', 'asc')
+            ->get();
 
         // ===============================
         // RUNNING TEXT
@@ -50,9 +63,6 @@ class WelcomeController extends Controller
             ->pluck('isi_text')
             ->toArray();
 
-        // ===============================
-        // RETURN VIEW
-        // ===============================
         return view('welcome', compact(
             'profil',
             'videos',

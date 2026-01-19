@@ -176,73 +176,73 @@ class SuperAdminController extends Controller
         return back()->withFragment('video')->with('success', 'Video berhasil dihapus!');
     }
 
-// ============================================================
-// CRUD KEGIATAN
-// ============================================================
-public function kegiatanStore(Request $request)
-{
-    $request->validate([
-        'tanggal_kegiatan' => 'required|date',
-        'jam'            => 'required|date_format:H:i',
-        'nama_kegiatan'    => 'required|string|max:255',
-        'disposisi'        => 'nullable|string|max:20',
-        'tempat'           => 'nullable|string|max:50',
-        'keterangan'       => 'nullable|string|max:100', 
-    ]);
+    // ============================================================
+    // CRUD KEGIATAN
+    // ============================================================
+    public function kegiatanStore(Request $request)
+    {
+        $request->validate([
+            'tanggal_kegiatan' => 'required|date',
+            'jam'            => 'required|date_format:H:i',
+            'nama_kegiatan'    => 'required|string|max:50',
+            'disposisi'        => 'nullable|string|max:20',
+            'tempat'           => 'nullable|string|max:50',
+            'keterangan'       => 'nullable|string|max:50',
+        ]);
 
-    Kegiatan::create([
-        'tanggal_kegiatan' => $request->tanggal_kegiatan,
-        'jam'            => $request->jam,
-        'nama_kegiatan'    => $request->nama_kegiatan,
-        'disposisi'        => $request->disposisi,
-        'keterangan'       => $request->keterangan,
-        'tempat'           => $request->tempat,
-    ]);
+        Kegiatan::create([
+            'tanggal_kegiatan' => $request->tanggal_kegiatan,
+            'jam'            => $request->jam,
+            'nama_kegiatan'    => $request->nama_kegiatan,
+            'disposisi'        => $request->disposisi,
+            'keterangan'       => $request->keterangan,
+            'tempat'           => $request->tempat,
+        ]);
 
-    return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil ditambahkan!');
-}
-
-public function kegiatanUpdate(Request $request, $id)
-{
-    $request->validate([
-        'tanggal_kegiatan' => 'nullable|date',
-        'jam'              => 'nullable|date_format:H:i',
-        'nama_kegiatan'    => 'required|string|max:255',
-        'disposisi'        => 'nullable|string|max:20',
-        'tempat'           => 'nullable|string|max:50',
-        'keterangan'       => 'nullable|string|max:100',
-    ]);
-
-    // ✅ Field wajib
-    $data = [
-        'nama_kegiatan' => $request->nama_kegiatan,
-        'disposisi'     => $request->disposisi,
-        'keterangan'    => $request->keterangan,
-        'tempat'        => $request->tempat,
-    ];
-
-    // ✅ Update tanggal hanya kalau dikirim
-    if ($request->filled('tanggal_kegiatan')) {
-        $data['tanggal_kegiatan'] = $request->tanggal_kegiatan;
+        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil ditambahkan!');
     }
 
-    // ✅ Update jam hanya kalau dikirim
-    if ($request->filled('jam')) {
-        $data['jam'] = $request->jam;
+    public function kegiatanUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'tanggal_kegiatan' => 'nullable|date',
+            'jam'              => 'nullable|date_format:H:i',
+            'nama_kegiatan'    => 'required|string|max:50',
+            'disposisi'        => 'nullable|string|max:20',
+            'tempat'           => 'nullable|string|max:50',
+            'keterangan'       => 'nullable|string|max:50',
+        ]);
+
+        // ✅ Field wajib
+        $data = [
+            'nama_kegiatan' => $request->nama_kegiatan,
+            'disposisi'     => $request->disposisi,
+            'keterangan'    => $request->keterangan,
+            'tempat'        => $request->tempat,
+        ];
+
+        // ✅ Update tanggal hanya kalau dikirim
+        if ($request->filled('tanggal_kegiatan')) {
+            $data['tanggal_kegiatan'] = $request->tanggal_kegiatan;
+        }
+
+        // ✅ Update jam hanya kalau dikirim
+        if ($request->filled('jam')) {
+            $data['jam'] = $request->jam;
+        }
+
+        Kegiatan::where('kegiatan_id', $id)->update($data);
+
+        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil diperbarui!');
     }
 
-    Kegiatan::where('kegiatan_id', $id)->update($data);
-
-    return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil diperbarui!');
-}
 
 
-
-public function kegiatanDelete($id)
-{
-    Kegiatan::where('kegiatan_id', $id)->delete();
-    return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil dihapus!');
-}
+    public function kegiatanDelete($id)
+    {
+        Kegiatan::where('kegiatan_id', $id)->delete();
+        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil dihapus!');
+    }
 
 
     // ============================================================
@@ -288,10 +288,10 @@ public function kegiatanDelete($id)
     public function normalAdminStore(Request $request)
     {
         $request->validate([
-            'nama_admin'      => 'required|string|max:100',
-            'bagian'          => 'required|string|max:100',
+            'nama_admin'      => 'required|string|max:50',
+            'bagian'          => 'required|string|max:50',
             'nip'             => 'required|digits:18',
-            'password_admin'  => 'required|string|max:50',
+            'password_admin'  => 'required|string|min:6|max:20',
             'role_admin'      => 'required|in:normaladmin,superadmin',
         ]);
 
@@ -301,7 +301,7 @@ public function kegiatanDelete($id)
             'bagian'         => $request->bagian,
             'nip'            => $request->nip,
             'password_admin' => Hash::make($request->password_admin),
-            'role_admin'     => $request->role_admin, 
+            'role_admin'     => $request->role_admin,
         ]);
 
 
@@ -313,9 +313,10 @@ public function kegiatanDelete($id)
         $admin = User::where('id_admin', $id)->firstOrFail();
 
         $request->validate([
-            'nama_admin' => 'required|string|max:100|unique:tb_admin,nama_admin,' . $id . ',id_admin',
-            'bagian'     => 'required|string|max:100',
+            'nama_admin' => 'required|string|max:30|unique:tb_admin,nama_admin,' . $id . ',id_admin',
+            'bagian'     => 'required|string|max:30',
             'nip'        => 'required|digits:18',
+            'password_admin' => 'nullable|string|min:6|max:20',
         ]);
 
 

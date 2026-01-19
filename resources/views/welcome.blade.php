@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SIKAP SDM – Agenda Kegiatan Pimpinan Biro SDM</title>
 
     <!-- BOOTSTRAP + ICON -->
@@ -33,7 +33,6 @@
 
             <!-- JUDUL -->
             <h1 class="text-center fw-bold mb-0">
-                <i class="fas fa-calendar-check me-3"></i>
                 AGENDA PIMPINAN BIRO SDM
             </h1>
 
@@ -44,7 +43,6 @@
             </div>
 
         </div>
-
 
         <div class="row tv-content-row mt-2 gx-1">
 
@@ -124,7 +122,7 @@
 
             <div class="card-body">
                 <!-- PAKAI WRAPPER ADMIN + TV MODE -->
-                <div class="admin-table-wrapper-table agenda-scroll-container tv-mode" id="agendaScroll">
+                <div class="admin-table-wrapper agenda-scroll-container tv-mode" id="agendaScroll">
                     <table class="table table-hover mb-0">
                         <thead class="sticky-thead-admin">
                             <tr>
@@ -138,35 +136,33 @@
 
                         <tbody id="agendaTbody">
                             @forelse ($agendaKegiatan as $item)
+                            @php
+                            $today = \Carbon\Carbon::today('Asia/Jakarta');
 
-                       @php
-    $today = \Carbon\Carbon::today('Asia/Jakarta');
+                            $date = \Carbon\Carbon::parse($item->tanggal_kegiatan, 'Asia/Jakarta')
+                            ->startOfDay();
 
-    $date = \Carbon\Carbon::parse($item->tanggal_kegiatan, 'Asia/Jakarta')
-                ->startOfDay();
+                            // parsing jam (kalau ada)
+                            $jam = $item->jam
+                            ? \Carbon\Carbon::parse($item->jam, 'Asia/Jakarta')
+                            : null;
 
-    // parsing jam (kalau ada)
-    $jam = $item->jam
-        ? \Carbon\Carbon::parse($item->jam, 'Asia/Jakarta')
-        : null;
-
-    if ($date->equalTo($today)) {
-        $cls = 'agenda-today';
-    } elseif ($date->equalTo($today->copy()->addDay())) {
-        $cls = 'agenda-tomorrow';
-    } else {
-        $cls = 'agenda-other';
-    }
-@endphp
-
+                            if ($date->equalTo($today)) {
+                            $cls = 'agenda-today';
+                            } elseif ($date->equalTo($today->copy()->addDay())) {
+                            $cls = 'agenda-tomorrow';
+                            } else {
+                            $cls = 'agenda-other';
+                            }
+                            @endphp
 
                             <tr class="{{ $cls }}">
                                 <td>
-    {{ $date->translatedFormat('l, d F Y') }}
-    @if($jam)
-        | {{ $jam->format('H.i') }} WIB
-    @endif
-</td>
+                                    {{ $date->translatedFormat('l, d F Y') }}
+                                    @if($jam)
+                                    - {{ $jam->format('H.i') }} WIB
+                                    @endif
+                                </td>
                                 <td>{{ $item->nama_kegiatan }}</td>
                                 <td>{{ $item->tempat }}</td>
                                 <td>{{ $item->disposisi }}</td>
@@ -186,14 +182,14 @@
             </div>
         </div>
 
-       <!-- RUNNING TEXT -->
-<div class="running-text-container mt-2 tv-running-text">
-    <div id="runningContainer">
-        <span id="runningText">
-            {{ implode(' | ', $runningtext) }}
-        </span>
-    </div>
-</div>
+        <!-- RUNNING TEXT -->
+        <div class="running-text-container mt-2 tv-running-text">
+            <div id="runningContainer">
+                <span id="runningText">
+                    {{ implode(' | ', $runningtext) }}
+                </span>
+            </div>
+        </div>
 
     </div>
 
@@ -304,91 +300,128 @@
     <!-- 🔥 AUTO SCROLL TV MODE - GRUP 4 ROW DENGAN FADE -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            const agendaScroll = document.getElementById("agendaScroll");
             const tbody = document.getElementById("agendaTbody");
-            if (!tbody) return;
+
+            if (!agendaScroll || !tbody) return;
 
             const rows = Array.from(tbody.querySelectorAll("tr"))
                 .filter(r => !r.querySelector("td[colspan]"));
 
-            const ROWS_PER_PAGE = 5;
-            const DISPLAY_TIME = 15000;
+            if (!rows.length) return;
+
+            const DISPLAY_TIME = 6000;
             const FADE_DURATION = 500;
 
-            // sembunyikan semua dulu
+            /* RESET */
             rows.forEach(r => {
-                r.style.display = "none";
-                r.style.opacity = "0";
+                r.style.display = "table-row";
+                r.style.opacity = "1";
+                r.style.transform = "none";
             });
 
-            if (rows.length <= ROWS_PER_PAGE) {
-                rows.forEach(r => {
-                    r.style.display = "table-row";
-                    r.style.opacity = "1";
-                });
-                return;
-            }
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
 
-            // grup per 2
-            const groups = [];
-            for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
-                groups.push(rows.slice(i, i + ROWS_PER_PAGE));
-            }
+                    const thead = agendaScroll.querySelector("thead");
+                    const theadHeight = thead ? thead.offsetHeight : 0;
 
-            let index = 0;
+                    /* HEIGHT REAL (ANTI KE POTONG) */
+                    const maxHeight =
+                        agendaScroll.clientHeight -
+                        theadHeight -
+                        6; // buffer aman
 
-            function showGroup(i) {
-                rows.forEach(r => {
-                    r.style.opacity = "0";
-                });
+                    const groups = [];
+                    let current = [];
+                    let height = 0;
 
-                setTimeout(() => {
-                    rows.forEach(r => r.style.display = "none");
+                    rows.forEach(row => {
+                        const h = row.offsetHeight;
 
-                    groups[i].forEach(r => {
-                        r.style.display = "table-row";
-                        r.style.transition = `opacity ${FADE_DURATION}ms ease-in`;
+                        /* kalau 1 row lebih tinggi dari layar → tampil sendiri */
+                        if (h > maxHeight) {
+                            if (current.length) groups.push(current);
+                            groups.push([row]);
+                            current = [];
+                            height = 0;
+                            return;
+                        }
+
+                        if (height + h > maxHeight && current.length) {
+                            groups.push(current);
+                            current = [];
+                            height = 0;
+                        }
+
+                        current.push(row);
+                        height += h;
                     });
 
-                    setTimeout(() => {
-                        groups[i].forEach(r => r.style.opacity = "1");
-                    }, 50);
+                    if (current.length) groups.push(current);
 
-                }, FADE_DURATION);
-            }
+                    /* HIDE SEMUA */
+                    rows.forEach(r => {
+                        r.style.display = "none";
+                        r.style.opacity = "0";
+                    });
 
-            showGroup(0);
-            index = 1;
+                    let index = 0;
 
-            setInterval(() => {
-                showGroup(index);
-                index = (index + 1) % groups.length;
-            }, DISPLAY_TIME + FADE_DURATION);
+                    function showGroup(i) {
+                        rows.forEach(r => r.style.opacity = "0");
+
+                        setTimeout(() => {
+                            rows.forEach(r => r.style.display = "none");
+
+                            if (!groups[i]) return;
+
+                            groups[i].forEach(r => {
+                                r.style.display = "table-row";
+                                r.style.opacity = "0";
+                            });
+
+                            requestAnimationFrame(() => {
+                                groups[i].forEach(r => r.style.opacity = "1");
+                            });
+
+                        }, FADE_DURATION);
+                    }
+
+                    showGroup(0);
+                    index = 1;
+
+                    setInterval(() => {
+                        showGroup(index);
+                        index = (index + 1) % groups.length;
+                    }, DISPLAY_TIME + FADE_DURATION);
+
+                });
+            });
         });
     </script>
 
+    <!-- RUNNING TEXT -->
+    <script>
+        (function() {
+            const raw = @json($runningtext ?? []);
 
-<!-- RUNNING TEXT -->
-<script>
-(function() {
-    const raw = @json($runningtext ?? []);
+            if (!raw.length) return;
 
-    if (!raw.length) return;
+            // Gabungkan semua text dengan separator |
+            const mergedText = raw.join(' | ');
 
-    // Gabungkan semua text dengan separator |
-    const mergedText = raw.join(' | ');
+            const el = document.getElementById('runningText');
+            if (!el) return;
 
-    const el = document.getElementById('runningText');
-    if (!el) return;
+            el.textContent = mergedText;
 
-    el.textContent = mergedText;
-
-    // Jalankan animasi sekali terus looping via CSS animation
-    el.style.animation = "none";
-    void el.offsetWidth;
-    el.style.animation = "marquee 25s linear infinite";
-})();
-</script>
-
+            // Jalankan animasi sekali terus looping via CSS animation
+            el.style.animation = "none";
+            void el.offsetWidth;
+            el.style.animation = "marquee 25s linear infinite";
+        })();
+    </script>
 
     <!-- ✅ OVERLAY TRANSPARAN (tangkep 1x klik/tap/OK) -->
     <div id="unlockAudio"
