@@ -1086,6 +1086,13 @@ h5.fw-bold {
     border-collapse: collapse;
 }
 
+.collapse,
+.collapsing {
+    will-change: height;
+    transform: translateZ(0);
+}
+
+
 /* semua cell WAJIB wrap */
 #agendaTableContainer th,
 #agendaTableContainer td {
@@ -1214,15 +1221,6 @@ h5.fw-bold {
 #profil .modern-card {
     overflow: visible !important;
 }
-.profil-nav-wrapper {
-    height: 70px;              /* ruang tetap */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-
-    margin-top: 20px;
-}
 
 .admin-table-wrapper-fluid {
     width: 100%;
@@ -1246,7 +1244,7 @@ h5.fw-bold {
     padding-bottom: 90px; /* ruang untuk tombol */
 }
 
-#profil .profil-pagination-fixed {
+#profil .profil-nav-wrapper {
     position: absolute;
     bottom: 20px;               /* POSISI TETAP */
     left: 0;
@@ -1296,8 +1294,7 @@ h5.fw-bold {
     line-height: 1.4;
 }
 
-.agenda-wrapper 
- {
+.agenda-wrapper {
     min-height: auto;        /* BIARKAN TINGGI ALAMI */
     overflow: visible;       /* JANGAN POTONG ROW */
     table-layout: fixed;

@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="{{ asset('welcome.css') }}">
 </head>
 
-<body>
+<body class="tv-32">
 
     <div class="container py-3">
 
@@ -156,7 +156,7 @@
                             }
                             @endphp
 
-                            <tr class="{{ $cls }}">
+                            <tr class="{{ $cls }}" {{ $cls === 'agenda-today' ? 'data-pinned=true' : '' }}>
                                 <td>
                                     {{ $date->translatedFormat('l, d F Y') }}
                                     @if($jam)
@@ -193,239 +193,20 @@
 
     </div>
 
-    <!-- JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- CLOCK -->
-    <script>
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            }).replace(/\./g, ':');
-
-            document.getElementById('timeText').textContent = timeString;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-    </script>
-
-    <!-- CAROUSEL -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const carouselElement = document.querySelector('#carouselPimpinan');
-            if (carouselElement) {
-                const carousel = new bootstrap.Carousel(carouselElement, {
-                    interval: 10000,
-                    ride: 'carousel',
-                    wrap: true
-                });
-            }
-        });
-    </script>
-
-    <!-- VIDEO LOOP -->
-    <script>
-        (function() {
-            const playlist = @json($playlist ?? []);
-            let i = 0;
-
-            // FIX: ambil element by id (biar gak ngandelin global var)
-            const A = document.getElementById('vidA');
-            const B = document.getElementById('vidB');
-
-            if (!A || !B) return;
-            if (!playlist.length) return;
-
-            A.src = playlist[0];
-            A.classList.add("active");
-            A.play().catch(() => {});
-
-            function next(cur, nxt) {
-                i = (i + 1) % playlist.length;
-                nxt.src = playlist[i];
-                nxt.play().catch(() => {});
-                cur.classList.remove("active");
-                nxt.classList.add("active");
-            }
-
-            A.onended = () => next(A, B);
-            B.onended = () => next(B, A);
-        })();
-    </script>
-
-    <!-- ✅ UNLOCK AUDIO TANPA TOMBOL (klik/tap/remote OK pertama di mana aja) -->
-    <script>
-        (function() {
-            const overlay = document.getElementById('unlockAudio');
-
-            function unlock() {
-                const A = document.getElementById('vidA');
-                const B = document.getElementById('vidB');
-                if (!A || !B) return;
-
-                // aktifkan suara
-                [A, B].forEach(v => {
-                    v.muted = false;
-                    v.volume = 1;
-                });
-
-                // play video aktif
-                const active = A.classList.contains('active') ? A : B;
-                active.play().catch(() => {});
-
-                // MATIIN OVERLAY TOTAL
-                if (overlay) overlay.classList.add('hidden');
-
-                window.removeEventListener('click', unlock);
-                window.removeEventListener('touchstart', unlock);
-                window.removeEventListener('keydown', unlock);
-            }
-
-            window.addEventListener('click', unlock, {
-                once: true
-            });
-            window.addEventListener('touchstart', unlock, {
-                once: true
-            });
-            window.addEventListener('keydown', unlock, {
-                once: true
-            });
-        })();
-    </script>
-
-    <!-- 🔥 AUTO SCROLL TV MODE - GRUP 4 ROW DENGAN FADE -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const agendaScroll = document.getElementById("agendaScroll");
-            const tbody = document.getElementById("agendaTbody");
-
-            if (!agendaScroll || !tbody) return;
-
-            const rows = Array.from(tbody.querySelectorAll("tr"))
-                .filter(r => !r.querySelector("td[colspan]"));
-
-            if (!rows.length) return;
-
-            const DISPLAY_TIME = 6000;
-            const FADE_DURATION = 500;
-
-            /* RESET */
-            rows.forEach(r => {
-                r.style.display = "table-row";
-                r.style.opacity = "1";
-                r.style.transform = "none";
-            });
-
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-
-                    const thead = agendaScroll.querySelector("thead");
-                    const theadHeight = thead ? thead.offsetHeight : 0;
-
-                    /* HEIGHT REAL (ANTI KE POTONG) */
-                    const maxHeight =
-                        agendaScroll.clientHeight -
-                        theadHeight -
-                        6; // buffer aman
-
-                    const groups = [];
-                    let current = [];
-                    let height = 0;
-
-                    rows.forEach(row => {
-                        const h = row.offsetHeight;
-
-                        /* kalau 1 row lebih tinggi dari layar → tampil sendiri */
-                        if (h > maxHeight) {
-                            if (current.length) groups.push(current);
-                            groups.push([row]);
-                            current = [];
-                            height = 0;
-                            return;
-                        }
-
-                        if (height + h > maxHeight && current.length) {
-                            groups.push(current);
-                            current = [];
-                            height = 0;
-                        }
-
-                        current.push(row);
-                        height += h;
-                    });
-
-                    if (current.length) groups.push(current);
-
-                    /* HIDE SEMUA */
-                    rows.forEach(r => {
-                        r.style.display = "none";
-                        r.style.opacity = "0";
-                    });
-
-                    let index = 0;
-
-                    function showGroup(i) {
-                        rows.forEach(r => r.style.opacity = "0");
-
-                        setTimeout(() => {
-                            rows.forEach(r => r.style.display = "none");
-
-                            if (!groups[i]) return;
-
-                            groups[i].forEach(r => {
-                                r.style.display = "table-row";
-                                r.style.opacity = "0";
-                            });
-
-                            requestAnimationFrame(() => {
-                                groups[i].forEach(r => r.style.opacity = "1");
-                            });
-
-                        }, FADE_DURATION);
-                    }
-
-                    showGroup(0);
-                    index = 1;
-
-                    setInterval(() => {
-                        showGroup(index);
-                        index = (index + 1) % groups.length;
-                    }, DISPLAY_TIME + FADE_DURATION);
-
-                });
-            });
-        });
-    </script>
-
-    <!-- RUNNING TEXT -->
-    <script>
-        (function() {
-            const raw = @json($runningtext ?? []);
-
-            if (!raw.length) return;
-
-            // Gabungkan semua text dengan separator |
-            const mergedText = raw.join(' | ');
-
-            const el = document.getElementById('runningText');
-            if (!el) return;
-
-            el.textContent = mergedText;
-
-            // Jalankan animasi sekali terus looping via CSS animation
-            el.style.animation = "none";
-            void el.offsetWidth;
-            el.style.animation = "marquee 25s linear infinite";
-        })();
-    </script>
-
     <!-- ✅ OVERLAY TRANSPARAN (tangkep 1x klik/tap/OK) -->
     <div id="unlockAudio"
         style="position:fixed; inset:0; z-index:9999; background:transparent;"></div>
+
+    <!-- JS -->
+    <script>
+        window.TV_DATA = {
+            playlist: @json($playlist ?? []),
+            runningtext: @json($runningtext ?? []),
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('welcome.js') }}"></script>
 
 </body>
 

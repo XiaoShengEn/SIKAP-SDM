@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Super Admin Dashboard - SIGAP</title>
+    <title>Super Admin Dashboard - SIKAP SDM</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -33,7 +33,7 @@
                 data-bs-toggle="modal"
                 data-bs-target="#logoutConfirmModal">
                 <i class="fas fa-sign-out-alt me-2"></i>
-                <span>Logout</span>
+                Keluar
             </a>
         </div>
     </nav>
@@ -113,9 +113,8 @@
                                     </button>
                                 </div>
 
-
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper-table fixed-height">
+                                <div class="admin-table-wrapper-table ">
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -158,7 +157,7 @@
                                 </div>
 
                                 <!-- NAVIGATION BUTTONS -->
-                                <div class="profil-pagination-fixed">
+                                <div class="profil-nav-wrapper">
                                     <button class="btn-nav-admin btn-nav-prev-admin" id="profilPrevBtn" type="button">
                                         <i class="fas fa-chevron-left"></i>
                                     </button>
@@ -181,7 +180,7 @@
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h4 class="mb-0">
-                                    <i class="fas fa-video me-2"></i> Video
+                                    <i class="fas fa-video me-2"></i> Video Kegiatan
                                 </h4>
                                 <span class="badge badge-light">{{ count($videos) }} Data</span>
                             </div>
@@ -301,7 +300,7 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> Agenda</h4>
+                                <h4 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> Agenda Kegiatan </h4>
                                 <span class="badge badge-light">{{ count($kegiatan) }} Data</span>
                             </div>
                         </div>
@@ -432,7 +431,7 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-scroll me-2"></i> Running Text</h4>
+                                <h4 class="mb-0"><i class="fas fa-scroll me-2"></i> Text Berjalan</h4>
                                 <span class="badge badge-light">{{ count($runningtext) }} Data</span>
                             </div>
                         </div>
@@ -530,7 +529,7 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-users-cog me-2"></i> Admin</h4>
+                                <h4 class="mb-0"><i class="fas fa-users-cog me-2"></i> Kelola Admin</h4>
                                 <span class="badge badge-light">{{ count($normaladmin) }} Data</span>
                             </div>
                         </div>
@@ -564,9 +563,8 @@
 
                                 </div>
 
-
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper-table fixed-height">
+                                <div class="admin-table-wrapper-table">
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -632,13 +630,15 @@
 
                             <div class="modal-header bg-danger text-white">
                                 <h5 class="modal-title">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Konfirmasi Logout
+                                    <i class="fas fa-sign-out-alt me-2"></i> Konfirmasi Keluar
                                 </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                <button type="button"
+                                    class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
                             </div>
 
                             <div class="modal-body text-center">
-                                <p class="fs-5 mb-0">Apakah kamu ingin logout?</p>
+                                <p class="fs-5 mb-0">Apakah kamu ingin Keluar?</p>
                             </div>
 
                             <div class="modal-footer">
@@ -646,9 +646,15 @@
                                     Batal
                                 </button>
 
-                                <a href="{{ url('/logout') }}" class="btn btn-danger">
-                                    Ya, Logout
-                                </a>
+                                <!-- 🔥 SATU-SATUNYA LOGOUT -->
+                                <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                    @csrf
+                                    <button type="submit"
+                                        class="btn btn-danger"
+                                        onclick="localStorage.removeItem('open-section')">
+                                        Ya, Keluar
+                                    </button>
+                                </form>
                             </div>
 
                         </div>
@@ -1161,7 +1167,9 @@
                                 <button class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
 
-                            <form action="{{ route('superadmin.kegiatan.update', $k->kegiatan_id) }}" method="POST">
+                            <form action="{{ route('superadmin.kegiatan.update', $k->kegiatan_id) }}"
+                                method="POST"
+                                class="agenda-edit-form">
                                 @csrf
 
                                 <div class="modal-body">
@@ -1260,6 +1268,7 @@
                                     <input type="number"
                                         name="nip"
                                         class="form-control"
+                                        value="{{ $n->nip }}"
                                         inputmode="numeric"
                                         oninput="this.value=this.value.replace(/\D/g,'').slice(0,18)"
                                         placeholder="18 digit NIP">
@@ -1328,366 +1337,16 @@
         </div>
     </main>
 
-    <!-- JS -->
-    <!-- =========================================
-    = = = = = = 1. SIDEBAR NAVIGATION = = = = =
-    =  - Buka/tutup sidebar
-    =  - Auto close di HP
-    =  - Highlight menu sesuai posisi scroll
-    =  - Smooth scroll saat klik menu
-    ========================================= -->
-    <script>
-        (function() {
-            const sidebar = document.getElementById('sidebar');
-            const content = document.getElementById('content');
-            const menuBtn = document.getElementById('menuBtn');
+    <!-- AUTO LOGOUT FORM (JANGAN DIHAPUS) -->
+    <form id="auto-logout-form"
+        action="{{ route('logout') }}"
+        method="POST"
+        style="display:none;">
+        @csrf
+    </form>
 
-            function toggleSidebar() {
-                sidebar.classList.toggle('show');
-                if (window.innerWidth > 992) content.classList.toggle('with-sidebar');
-            }
-
-            menuBtn.addEventListener('click', toggleSidebar);
-
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth <= 992) {
-                    if (!sidebar.contains(e.target) && !menuBtn.contains(e.target) && sidebar.classList.contains('show')) {
-                        sidebar.classList.remove('show');
-                    }
-                }
-            });
-
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 992) {
-                    sidebar.classList.remove('show');
-                    content.classList.remove('with-sidebar');
-                }
-            });
-
-            const sidebarItems = document.querySelectorAll('.sidebar-item');
-            const sections = document.querySelectorAll('section[id]');
-
-            function setActiveSidebarItem() {
-                let current = '';
-                const scrollPosition = window.pageYOffset + 150;
-
-                sections.forEach(section => {
-                    if (
-                        scrollPosition >= section.offsetTop &&
-                        scrollPosition < section.offsetTop + section.clientHeight
-                    ) {
-                        current = section.id;
-                    }
-                });
-
-                if (current) {
-                    sidebarItems.forEach(item => {
-                        item.classList.remove('active');
-                        if (item.getAttribute('href') === '#' + current) item.classList.add('active');
-                    });
-                }
-            }
-
-            let scrollTimeout;
-            window.addEventListener('scroll', function() {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(setActiveSidebarItem, 100);
-            });
-
-            sidebarItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    const targetId = this.getAttribute('href');
-
-                    sidebarItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-
-                    if (targetId.startsWith('#')) {
-                        e.preventDefault();
-                        const targetSection = document.querySelector(targetId);
-                        if (targetSection) {
-                            window.scrollTo({
-                                top: targetSection.offsetTop - 100,
-                                behavior: 'smooth'
-                            });
-                        }
-                    }
-
-                    if (window.innerWidth <= 992) sidebar.classList.remove('show');
-                });
-            });
-
-            setActiveSidebarItem();
-        })();
-    </script>
-
-    <!-- =========================================
-    = = = = = = 2. REMEMBER LAST COLLAPSE = = =
-    =  - Menyimpan panel yang terakhir dibuka
-    =  - Saat reload tetap terbuka
-    ========================================= -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const lastOpen = localStorage.getItem("open-section");
-            if (lastOpen) {
-                const el = document.getElementById(lastOpen);
-                if (el) el.classList.add("show");
-            }
-
-            document.querySelectorAll('.collapse').forEach(c => {
-                c.addEventListener('show.bs.collapse', function() {
-                    localStorage.setItem("open-section", this.id);
-                });
-            });
-        });
-    </script>
-
-    <!-- =========================================
-    = = = = = 3. GLOBAL PAGINATION SYSTEM = = =
-    =  Dipakai oleh:
-    =   - Profil
-    =   - Video
-    =   - Agenda
-    =   - Running Text
-    =   - Normal Admin
-    =
-    =  Fungsi:
-    =   - Pagination
-    =   - Search
-    =   - Menjaga tinggi tabel stabil (row kosong)
-    ========================================= -->
-    <script>
-        const rowsPerPageMap = {
-            profil: 3,
-            video: 2,
-            agenda: 4,
-            runningtext: 6,
-            normaladmin: 4,
-        };
-
-        function initTablePagination(tableName) {
-            const tbody = document.getElementById(tableName + "Tbody");
-            const searchInput = document.getElementById(tableName + "Search");
-            const prevBtn = document.getElementById(tableName + "PrevBtn");
-            const nextBtn = document.getElementById(tableName + "NextBtn");
-
-            if (!tbody) return;
-
-            const allRows = Array.from(tbody.querySelectorAll("tr"));
-            const allDataRows = allRows.filter(row => {
-                const firstCell = row.querySelector("td");
-                return firstCell && !firstCell.hasAttribute("colspan");
-            });
-
-            let filteredRows = [...allDataRows];
-            let currentPage = 0;
-            const rowsPerPage = rowsPerPageMap[tableName] || 4;
-
-            const emptyRowClass = tableName + "-empty-row";
-            const existingEmptyRows = Array.from(tbody.querySelectorAll("." + emptyRowClass));
-            const firstDataRow = allDataRows[0];
-            const colCount = firstDataRow ? firstDataRow.querySelectorAll("td").length : 6;
-
-            if (existingEmptyRows.length < rowsPerPage) {
-                const rowsToAdd = rowsPerPage - existingEmptyRows.length;
-                for (let i = 0; i < rowsToAdd; i++) {
-                    const emptyRow = document.createElement("tr");
-                    emptyRow.className = emptyRowClass;
-                    emptyRow.innerHTML = `<td colspan="${colCount}" style="height:60px;border:none;"></td>`;
-                    tbody.appendChild(emptyRow);
-                }
-            }
-
-            const emptyRows = Array.from(tbody.querySelectorAll("." + emptyRowClass));
-
-            function showPage(page) {
-                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-                if (page < 0) page = 0;
-                if (page >= totalPages && totalPages > 0) page = totalPages - 1;
-
-                currentPage = page;
-
-                allDataRows.forEach(r => r.style.display = 'none');
-                emptyRows.forEach(r => r.style.display = 'none');
-
-                const start = currentPage * rowsPerPage;
-                const end = start + rowsPerPage;
-                const visible = filteredRows.slice(start, end);
-
-                visible.forEach(r => r.style.display = 'table-row');
-
-                const filler = emptyRows.slice(0, rowsPerPage - visible.length);
-                filler.forEach(r => r.style.display = 'table-row');
-
-                if (prevBtn && nextBtn) {
-                    prevBtn.disabled = currentPage === 0;
-                    nextBtn.disabled = currentPage >= totalPages - 1 || totalPages === 0;
-                }
-            }
-
-            function performSearch() {
-                const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-                filteredRows = term === '' ? [...allDataRows] :
-                    allDataRows.filter(row =>
-                        (row.getAttribute('data-search') || '').includes(term)
-                    );
-
-                currentPage = 0;
-                showPage(0);
-            }
-
-            if (searchInput) searchInput.addEventListener('input', performSearch);
-            if (prevBtn) prevBtn.addEventListener('click', () => showPage(currentPage - 1));
-            if (nextBtn) nextBtn.addEventListener('click', () => {
-                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-                if (currentPage < totalPages - 1) showPage(currentPage + 1);
-            });
-
-            showPage(0);
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const tables = ['profil', 'video', 'agenda', 'runningtext', 'normaladmin'];
-
-            tables.forEach(name => {
-                initTablePagination(name);
-
-                const clearBtn = document.getElementById(name + 'ClearSearch');
-                const searchInput = document.getElementById(name + 'Search');
-
-                if (clearBtn && searchInput) {
-                    clearBtn.addEventListener('click', () => {
-                        searchInput.value = '';
-                        initTablePagination(name);
-                    });
-                }
-            });
-        });
-    </script>
-
-    <!-- =========================================
-    = = = = = = 5. VIDEO SECTION = = = = =
-    =  - Counter textarea modal tambah video
-    =  - Counter textarea edit video
-    ========================================= -->
-    <script>
-        const videoModalTextarea = document.getElementById('video_keterangan_modal');
-        const videoModalCounter = document.getElementById('videoModalCounter');
-
-        if (videoModalTextarea) {
-            videoModalTextarea.addEventListener('input', () => {
-                videoModalCounter.innerText = videoModalTextarea.value.length;
-            });
-        }
-
-        document.querySelectorAll('.video-edit-textarea').forEach(textarea => {
-            const counterEl = document.getElementById(textarea.dataset.counter);
-            textarea.addEventListener('input', () => {
-                counterEl.innerText = textarea.value.length;
-            });
-        });
-    </script>
-
-    <!-- =========================================
-    = = = = 9. PASSWORD VISIBILITY TOGGLE = =
-    =  - Show / hide password
-    ========================================= -->
-    <script>
-        document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.password-toggle');
-            if (!btn) return;
-
-            const input = document.getElementById(btn.dataset.target);
-            if (!input) return;
-
-            const isPassword = input.type === 'password';
-            input.type = isPassword ? 'text' : 'password';
-            btn.classList.toggle('active', isPassword);
-        });
-    </script>
-
-
-
-    <!-- =========================================
-    = = = = 10. GLOBAL MAXLENGTH COUNTER = =
-    =  - Semua input/textarea dengan maxlength
-    =  - Menampilkan counter
-    ========================================= -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach(input => {
-                const max = parseInt(input.getAttribute('maxlength'));
-                if (!max) return;
-
-                const counter = document.createElement('small');
-                counter.className = 'text-muted d-block text-start counter-tight';
-
-                // 🔑 CEK APAKAH INPUT ADA DI INPUT-GROUP
-                const inputGroup = input.closest('.input-group');
-
-                if (inputGroup) {
-                    inputGroup.after(counter); // TARUH SETELAH INPUT-GROUP
-                } else {
-                    input.after(counter); // NORMAL
-                }
-
-                function updateCounter() {
-                    let length = input.value.length;
-                    if (length > max) {
-                        input.value = input.value.slice(0, max);
-                        length = max;
-                    }
-
-                    counter.innerText = `${length}/${max} karakter`;
-                    counter.style.color = length >= max ? 'red' : '';
-                }
-
-                input.addEventListener('input', updateCounter);
-                updateCounter();
-            });
-        });
-    </script>
-
-
-    <!-- ============================================================
-     AUTO LOGOUT BERDASARKAN KETIDAKAKTIFAN USER
-     ------------------------------------------------------------
-     Fungsi:
-     - Menghitung waktu tidak ada aktivitas user
-     - Jika melewati batas waktu, user otomatis logout
-     
-     Aktivitas yang dianggap aktif:
-     - Mouse bergerak
-     - Keyboard ditekan
-     - Click
-     - Scroll
-     - Touch (untuk device mobile)
-    ============================================================ -->
-
-    <!-- <script>
-        let autoLogoutTimer;
-        const AUTO_LOGOUT_INTERVAL = 5 * 60 * 1000; // Waktu tidak aktif sebelum logout (5 menit)
-
-        function resetAutoLogoutTimer() {
-            clearTimeout(autoLogoutTimer);
-            autoLogoutTimer = setTimeout(() => {
-                window.location.href = "{{ url('/logout') }}";
-            }, AUTO_LOGOUT_INTERVAL);
-        }
-
-        // Aktivitas yang dianggap sebagai aktivitas pengguna
-        window.addEventListener('mousemove', resetAutoLogoutTimer);
-        window.addEventListener('keydown', resetAutoLogoutTimer);
-        window.addEventListener('click', resetAutoLogoutTimer);
-        window.addEventListener('scroll', resetAutoLogoutTimer);
-        window.addEventListener('touchstart', resetAutoLogoutTimer);
-
-        // Mulai timer pertama kali
-        resetAutoLogoutTimer();
-    </script> -->
-
+    <script src="{{ asset('superad.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 
 </html>

@@ -26,35 +26,63 @@ class NormalAdminController extends Controller
     // ===============================
     // STORE KEGIATAN
     // ===============================
-    public function kegiatanStore(Request $r)
+    public function kegiatanStore(Request $request)
     {
-        DB::table('tb_kegiatan')->insert([
-            'tanggal_kegiatan' => $r->tanggal_kegiatan,
-            'nama_kegiatan'    => $r->nama_kegiatan,
-            'disposisi'        => $r->disposisi,
-            'keterangan'       => $r->keterangan,
-            'tempat'           => $r->tempat
+        $request->validate([
+            'tanggal_kegiatan' => 'required|date',
+            'jam'            => 'required|date_format:H:i',
+            'nama_kegiatan'    => 'required|string|max:50',
+            'disposisi'        => 'nullable|string|max:20',
+            'tempat'           => 'nullable|string|max:50',
+            'keterangan'       => 'nullable|string|max:50',
         ]);
 
-        return back()->with('success', 'Agenda berhasil ditambahkan!');
-    }
+        Kegiatan::create([
+            'tanggal_kegiatan' => $request->tanggal_kegiatan,
+            'jam'            => $request->jam,
+            'nama_kegiatan'    => $request->nama_kegiatan,
+            'disposisi'        => $request->disposisi,
+            'keterangan'       => $request->keterangan,
+            'tempat'           => $request->tempat,
+        ]);
 
+        return back()->withFragment('agenda');
+    }
     // ===============================
     // UPDATE KEGIATAN
     // ===============================
-    public function kegiatanUpdate(Request $r, $id)
+    public function kegiatanUpdate(Request $request, $id)
     {
-        DB::table('tb_kegiatan')
-            ->where('kegiatan_id', $id)
-            ->update([
-                'tanggal_kegiatan' => $r->tanggal_kegiatan,
-                'nama_kegiatan'    => $r->nama_kegiatan,
-                'disposisi'        => $r->disposisi,
-                'keterangan'       => $r->keterangan,
-                'tempat'           => $r->tempat
-            ]);
+        $request->validate([
+            'tanggal_kegiatan' => 'nullable|date',
+            'jam'              => 'nullable|date_format:H:i',
+            'nama_kegiatan'    => 'required|string|max:50',
+            'disposisi'        => 'nullable|string|max:20',
+            'tempat'           => 'nullable|string|max:50',
+            'keterangan'       => 'nullable|string|max:50',
+        ]);
 
-        return back()->with('success', 'Agenda berhasil diperbarui!');
+        // ✅ Field wajib
+        $data = [
+            'nama_kegiatan' => $request->nama_kegiatan,
+            'disposisi'     => $request->disposisi,
+            'keterangan'    => $request->keterangan,
+            'tempat'        => $request->tempat,
+        ];
+
+        // ✅ Update tanggal hanya kalau dikirim
+        if ($request->filled('tanggal_kegiatan')) {
+            $data['tanggal_kegiatan'] = $request->tanggal_kegiatan;
+        }
+
+        // ✅ Update jam hanya kalau dikirim
+        if ($request->filled('jam')) {
+            $data['jam'] = $request->jam;
+        }
+
+        Kegiatan::where('kegiatan_id', $id)->update($data);
+
+        return back()->withFragment('agenda');
     }
 
     // ===============================
@@ -62,10 +90,7 @@ class NormalAdminController extends Controller
     // ===============================
     public function kegiatanDelete($id)
     {
-        DB::table('tb_kegiatan')
-            ->where('kegiatan_id', $id)
-            ->delete();
-
-        return back()->with('success', 'Agenda berhasil dihapus!');
+        Kegiatan::where('kegiatan_id', $id)->delete();
+        return back()->withFragment('agenda');
     }
 }

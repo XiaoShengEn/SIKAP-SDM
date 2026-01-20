@@ -73,7 +73,7 @@ class SuperAdminController extends Controller
         $request->validate([
             'nama_pimpinan'    => 'required|string|max:100',
             'jabatan_pimpinan' => 'required|string|max:100',
-            'foto_pimpinan'    => 'required|image|max:2048'
+            'foto_pimpinan'    => 'nullable|image|max:2048'
         ]);
 
         $profil = DB::table('tb_profil')->where('id_profil', $id)->first();
@@ -140,7 +140,7 @@ class SuperAdminController extends Controller
     public function videoUpdate(Request $request, $id)
     {
         $request->validate([
-            'video_kegiatan'   => 'required|file|mimes:mp4,mov,avi|max:50000',
+            'video_kegiatan'   => 'nullable|file|mimes:mp4,mov,avi|max:50000',
             'video_keterangan' => 'required|string'
         ]);
 
@@ -310,13 +310,14 @@ class SuperAdminController extends Controller
 
     public function normalAdminUpdate(Request $request, $id)
     {
+
         $admin = User::where('id_admin', $id)->firstOrFail();
 
         $request->validate([
             'nama_admin' => 'required|string|max:30|unique:tb_admin,nama_admin,' . $id . ',id_admin',
             'bagian'     => 'required|string|max:30',
             'nip'        => 'required|digits:18',
-            'password_admin' => 'nullable|string|min:6|max:20',
+            'password_admin' => 'nullable|string|min:6|max:20|confirmed',
         ]);
 
 

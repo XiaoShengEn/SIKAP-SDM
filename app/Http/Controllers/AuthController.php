@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
 
 class AuthController extends Controller
 {
@@ -19,12 +21,13 @@ class AuthController extends Controller
             ->first();
 
         if (!$admin) {
-            return back()->withErrors(['Email tidak ditemukan']);
+            return back()->withErrors(['NIP tidak ditemukan']);
         }
 
-        if ($admin->password_admin !== $request->password) {
+        if (!Hash::check($request->password, $admin->password_admin)) {
             return back()->withErrors(['Password salah']);
         }
+
 
         session([
             'admin_id' => $admin->id_admin,
