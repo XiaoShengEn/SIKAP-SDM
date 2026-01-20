@@ -1316,3 +1316,7 @@ h5.fw-bold {
     width: 100%;
     table-layout: fixed;
 }
+
+.main-content {
+    padding-top: 100px; /* sesuaikan dengan tinggi navbar */
+}
