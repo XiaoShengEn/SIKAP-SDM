@@ -24,49 +24,50 @@ class WelcomeController extends Controller
             ->get();
         $runningtext = DB::table('tb_runningtext')->orderBy('id_text')->pluck('isi_text')->toArray();
 
-        $ultahText = Cache::remember('ultah_hari_ini_besok', 10, function() {
-            $token = config('services.kemendagri.token');
-            if (!$token) {
-                return ['Hari ini belum ada pegawai yang berulang tahun', 'Besok belum ada pegawai yang berulang tahun'];
+        $ultahText = Cache::remember('ultah_hari_ini', 10, function() {
+        $token = config('services.kemendagri.token');
+        if (!$token) {
+            return ['Hari ini belum ada pegawai yang berulang tahun'];
+        }
+
+        $texts = [];
+        $date = Carbon::today('Asia/Jakarta'); 
+
+        $res = Http::withoutVerifying()
+            ->withHeaders([
+                'auth' => $token,
+                'Accept' => 'application/json',
+            ])
+            ->asForm()
+            ->timeout(15)
+            ->post(config('services.kemendagri.url'), [
+                'hari_ini' => $date->format('Y-m-d')
+            ]);
+
+        $data = $res->successful() ? $res->json('data') : [];
+
+        $found = [];
+        foreach ($data as $pegawai) {
+            if (substr($pegawai['tanggal_lahir'], 5, 5) === $date->format('m-d')) {
+                $found[] = $pegawai['nama'];
             }
+        }
 
-            $texts = [];
-            foreach (['Hari Ini' => Carbon::today('Asia/Jakarta'), 'Besok' => Carbon::tomorrow('Asia/Jakarta')] as $label => $date) {
-                $res = Http::withoutVerifying()
-                    ->withHeaders([
-                        'auth' => $token,
-                        'Accept' => 'application/json',
-                    ])
-                    ->asForm()
-                    ->timeout(15)
-                    ->post(config('services.kemendagri.url'), [
-                        'hari_ini' => $date->format('Y-m-d')
-                    ]);
-
-                $data = $res->successful() ? $res->json('data') : [];
-
-                $found = [];
-                foreach ($data as $pegawai) {
-                    // Ambil bulan-tanggal saja
-                    if (substr($pegawai['tanggal_lahir'], 5, 5) === $date->format('m-d')) {
-                        $found[] = $pegawai['nama'];
-                    }
-                }
-
-                if (!empty($found)) {
-                    foreach ($found as $nama) {
-                        $texts[] = "🎉 Ulang Tahun {$label}: {$nama}";
-                    }
-                } else {
-                    $texts[] = $label === 'Hari Ini' ? 'Hari ini belum ada pegawai yang berulang tahun' : 'Besok belum ada pegawai yang berulang tahun';
-                }
+        if (!empty($found)) {
+            foreach ($found as $nama) {
+                $texts[] = "🎉 Selamat Berulang Tahun : {$nama} 🎉";
             }
+        } else {
+            $texts[] = 'Hari ini belum ada pegawai yang berulang tahun';
+        }
 
-            return $texts;
-        });
+        return $texts;
+    });
 
-        $runningtext = array_merge($ultahText, $runningtext);
+    // gabungkan dengan running text lain
+    $runningtext = array_merge($ultahText, $runningtext);
 
-        return view('welcome', compact('profil', 'videos', 'playlist', 'agendaKegiatan', 'runningtext'));
+    return view('welcome', compact('profil', 'videos', 'playlist', 'agendaKegiatan', 'runningtext'));
+
     }
-}
+    }
