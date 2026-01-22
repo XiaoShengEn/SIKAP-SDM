@@ -685,7 +685,6 @@
                                         class="form-control "
                                         name="nama_pimpinan"
                                         maxlength="100"
-                                        oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
 
                                     <label class="form-label fw-bold">Jabatan:</label>
@@ -693,7 +692,6 @@
                                         class="form-control "
                                         name="jabatan_pimpinan"
                                         maxlength="100"
-                                        oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
 
                                 </div>
@@ -914,14 +912,17 @@
                                     <div class="row">
 
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label fw-bold">NIP</label>
-                                            <input type="number"
-                                                name="nip"
-                                                class="form-control"
-                                                inputmode="numeric"
-                                                oninput="this.value=this.value.replace(/\D/g,'').slice(0,18)"
-                                                placeholder="18 digit NIP">
-                                        </div>
+    <label class="form-label fw-bold">NIP</label>
+    <input type="number"
+    name="nip"
+    placeholder="Masukkan 18 NIP anda"
+    class="form-control @error('nip','addAdmin') is-invalid @enderror"
+    value="{{ old('nip') }}">
+
+@error('nip','addAdmin')
+    <div class="invalid-feedback">{{ $message }}</div>
+@enderror
+</div>
 
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold">Role</label>
@@ -932,13 +933,17 @@
                                         </div>
 
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label fw-bold">Nama Admin</label>
-                                            <input type="text"
-                                                name="nama_admin"
-                                                class="form-control"
-                                                maxlength="30"
-                                                required>
-                                        </div>
+    <label class="form-label fw-bold">Nama Admin</label>
+<input type="text"
+    name="nama_admin"
+    class="form-control @error('nama_admin','addAdmin') is-invalid @enderror"
+    value="{{ old('nama_admin') }}">
+
+@error('nama_admin','addAdmin')
+    <div class="invalid-feedback">{{ $message }}</div>
+@enderror
+</div>
+
 
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold">Bagian</label>
@@ -998,6 +1003,7 @@
 
                         </div>
                     </div>
+                    
                 </div>
 
                 @foreach ($profil as $p)
@@ -1023,7 +1029,6 @@
                                         name="nama_pimpinan"
                                         class="form-control "
                                         maxlength="100"
-                                        oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
 
                                     <label class="form-label fw-bold">Jabatan:</label>
@@ -1031,7 +1036,6 @@
                                         name="jabatan_pimpinan"
                                         class="form-control "
                                         maxlength="100"
-                                        oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
                                 </div>
 
@@ -1265,21 +1269,26 @@
                                 @csrf
                                 <div class="modal-body">
                                     <label class="form-label fw-bold">NIP</label>
-                                    <input type="number"
-                                        name="nip"
-                                        class="form-control"
-                                        value="{{ $n->nip }}"
-                                        inputmode="numeric"
-                                        oninput="this.value=this.value.replace(/\D/g,'').slice(0,18)"
-                                        placeholder="18 digit NIP">
+                                   <input type="number"
+    name="nip"
+    placeholder="Masukan 18 NIP anda"
+    class="form-control @error('nip', "editAdmin-$n->id_admin") is-invalid @enderror"
+    value="{{ old('nip', $n->nip) }}">
+
+@error('nip', "editAdmin-$n->id_admin")
+    <div class="invalid-feedback d-block">{{ $message }}</div>
+@enderror
+
 
                                     <label class="form-label fw-bold">Nama Admin:</label>
-                                    <input type="text"
-                                        name="nama_admin"
-                                        class="form-control"
-                                        maxlength="30"
-                                        value="{{ $n->nama_admin }}"
-                                        required>
+                                <input type="text"
+    name="nama_admin"
+    class="form-control @error('nama_admin', "editAdmin-$n->id_admin") is-invalid @enderror"
+    value="{{ old('nama_admin', $n->nama_admin) }}">
+
+@error('nama_admin', "editAdmin-$n->id_admin")
+    <div class="invalid-feedback d-block">{{ $message }}</div>
+@enderror
 
                                     <label class="form-label fw-bold">Bagian:</label>
                                     <input type="text"
@@ -1337,16 +1346,39 @@
         </div>
     </main>
 
-    <!-- AUTO LOGOUT FORM (JANGAN DIHAPUS) -->
-    <form id="auto-logout-form"
-        action="{{ route('logout') }}"
-        method="POST"
-        style="display:none;">
-        @csrf
-    </form>
+<!-- Ganti bagian script di akhir file superadmin.blade.php -->
 
-    <script src="{{ asset('superad.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AUTO LOGOUT FORM (JANGAN DIHAPUS) -->
+<form id="auto-logout-form"
+    action="{{ route('logout') }}"
+    method="POST"
+    style="display:none;">
+    @csrf
+</form>
+
+<script src="{{ asset('superad.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{{-- Script untuk membuka modal tambah admin jika ada error --}}
+@if ($errors->hasBag('addAdmin'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    new bootstrap.Modal(document.getElementById('modalTambahNormalAdmin')).show();
+});
+</script>
+@endif
+
+{{-- Script untuk membuka modal edit admin jika ada error --}}
+@foreach ($normaladmin as $n)
+    @if ($errors->hasBag("editAdmin-$n->id_admin"))
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('modalEditNormalAdmin-{{ $n->id_admin }}')).show();
+    });
+    </script>
+    @endif
+@endforeach
+
 </body>
 
 </html>

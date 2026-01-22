@@ -91,129 +91,101 @@
             });
         })();
 
-    /*.. 🔥 AUTO SCROLL TV MODE - GRUP 4 ROW DENGAN FADE ..*/
-        document.addEventListener("DOMContentLoaded", () => {
-            const agendaScroll = document.getElementById("agendaScroll");
-            const tbody = document.getElementById("agendaTbody");
+/* 🔥 AUTO SCROLL TV MODE — FIXED ROW PAGINATION (PINNED + CAROUSEL) */
+document.addEventListener("DOMContentLoaded", () => {
+    const agendaScroll = document.getElementById("agendaScroll");
+    const tbody = document.getElementById("agendaTbody");
 
-            if (!agendaScroll || !tbody) return;
+    if (!agendaScroll || !tbody) return;
 
-            const allRows = Array.from(tbody.querySelectorAll("tr"))
-                .filter(r => !r.querySelector("td[colspan]"));
+    // AMBIL SEMUA ROW VALID
+    const allRows = Array.from(tbody.querySelectorAll("tr"))
+        .filter(r => !r.querySelector("td[colspan]"));
 
-            if (!allRows.length) return;
+    if (!allRows.length) return;
 
-            // =========================
-            // PINNED (AGENDA HARI INI)
-            // =========================
-            const pinnedRows = allRows.filter(r => r.dataset.pinned === "true");
-            const scrollRows = allRows.filter(r => r.dataset.pinned !== "true");
+    // =========================
+    // CONFIG
+    // =========================
+    const TOTAL_ROWS = 6;        // TOTAL BARIS DI LAYAR
+    const DISPLAY_TIME = 6000;
+    const FADE_DURATION = 400;
 
-            const DISPLAY_TIME = 6000;
-            const FADE_DURATION = 500;
+    // =========================
+    // PINNED & CAROUSEL
+    // =========================
+    const pinnedRows = allRows.filter(r => r.dataset.pinned === "true");
+    const carouselRows = allRows.filter(r => r.dataset.pinned !== "true");
 
-            // RESET
-            allRows.forEach(r => {
+    // SLOT CAROUSEL (ANTI GOBLOK)
+    const CAROUSEL_ROWS_PER_PAGE = Math.max(
+        TOTAL_ROWS - pinnedRows.length,
+        1
+    );
+
+    // =========================
+    // RESET STYLE
+    // =========================
+    allRows.forEach(r => {
+        r.style.display = "none";
+        r.style.opacity = "0";
+        r.style.transition = `opacity ${FADE_DURATION}ms ease`;
+    });
+
+    // PINNED SELALU TAMPIL
+    pinnedRows.forEach(r => {
+        r.style.display = "table-row";
+        r.style.opacity = "1";
+    });
+
+    // =========================
+    // BUILD PAGES (CAROUSEL)
+    // =========================
+    const pages = [];
+    for (let i = 0; i < carouselRows.length; i += CAROUSEL_ROWS_PER_PAGE) {
+        pages.push(carouselRows.slice(i, i + CAROUSEL_ROWS_PER_PAGE));
+    }
+
+    if (!pages.length) return;
+
+    // =========================
+    // CAROUSEL LOGIC
+    // =========================
+    let index = 0;
+
+    function showPage(i) {
+        // FADE OUT SEMUA CAROUSEL
+        carouselRows.forEach(r => r.style.opacity = "0");
+
+        setTimeout(() => {
+            // SEMBUNYIKAN SEMUA
+            carouselRows.forEach(r => r.style.display = "none");
+
+            // TAMPILKAN PAGE AKTIF
+            pages[i].forEach(r => {
                 r.style.display = "table-row";
-                r.style.opacity = "1";
-                r.style.transform = "none";
+                r.style.opacity = "0";
             });
 
             requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-
-                    const thead = agendaScroll.querySelector("thead");
-                    const theadHeight = thead ? thead.offsetHeight : 0;
-
-                    const pinnedHeight = pinnedRows.reduce((sum, r) => sum + r.offsetHeight, 0);
-
-                    const maxHeight =
-                        agendaScroll.clientHeight -
-                        theadHeight -
-                        pinnedHeight -
-                        6; // buffer
-
-                    // =========================
-                    // BUILD GROUPS (NON PINNED)
-                    // =========================
-                    const groups = [];
-                    let current = [];
-                    let height = 0;
-
-                    scrollRows.forEach(row => {
-                        const h = row.offsetHeight;
-
-                        if (h > maxHeight) {
-                            if (current.length) groups.push(current);
-                            groups.push([row]);
-                            current = [];
-                            height = 0;
-                            return;
-                        }
-
-                        if (height + h > maxHeight && current.length) {
-                            groups.push(current);
-                            current = [];
-                            height = 0;
-                        }
-
-                        current.push(row);
-                        height += h;
-                    });
-
-                    if (current.length) groups.push(current);
-
-                    // =========================
-                    // DISPLAY CONTROL
-                    // =========================
-
-                    // hide semua non-pinned
-                    scrollRows.forEach(r => {
-                        r.style.display = "none";
-                        r.style.opacity = "0";
-                    });
-
-                    // pinned selalu tampil
-                    pinnedRows.forEach(r => {
-                        r.style.display = "table-row";
-                        r.style.opacity = "1";
-                    });
-
-                    if (!groups.length) return;
-
-                    let index = 0;
-
-                    function showGroup(i) {
-                        scrollRows.forEach(r => r.style.opacity = "0");
-
-                        setTimeout(() => {
-                            scrollRows.forEach(r => r.style.display = "none");
-
-                            if (!groups[i]) return;
-
-                            groups[i].forEach(r => {
-                                r.style.display = "table-row";
-                                r.style.opacity = "0";
-                            });
-
-                            requestAnimationFrame(() => {
-                                groups[i].forEach(r => r.style.opacity = "1");
-                            });
-
-                        }, FADE_DURATION);
-                    }
-
-                    showGroup(0);
-                    index = 1;
-
-                    setInterval(() => {
-                        showGroup(index);
-                        index = (index + 1) % groups.length;
-                    }, DISPLAY_TIME + FADE_DURATION);
-
-                });
+                pages[i].forEach(r => r.style.opacity = "1");
             });
-        });
+
+        }, FADE_DURATION);
+    }
+
+    // TAMPILKAN PAGE PERTAMA
+ showPage(index);
+
+// JALANKAN CAROUSEL HANYA JIKA LEBIH DARI 1 PAGE
+if (pages.length > 1) {
+    setInterval(() => {
+        index = (index + 1) % pages.length;
+        showPage(index);
+    }, DISPLAY_TIME + FADE_DURATION);
+}
+});
+
 
     /*.. RUNNING TEXT ..*/
         (function() {
