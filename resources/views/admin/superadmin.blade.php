@@ -82,7 +82,7 @@
                             data-bs-target="#profilTableBody"
                             aria-expanded="true"
                             style="cursor: pointer;">
-                            <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <h4 class="mb-0">
                                     <i class="fas fa-user-tie me-2"></i> Profil Pimpinan
                                 </h4>
@@ -300,7 +300,9 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> Agenda Kegiatan </h4>
+                                <h4 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i> Agenda Kegiatan
+                                </h4>
                                 <span class="badge badge-light">{{ count($kegiatan) }} Data</span>
                             </div>
                         </div>
@@ -912,17 +914,22 @@
                                     <div class="row">
 
                                         <div class="col-md-6 mb-3">
-    <label class="form-label fw-bold">NIP</label>
-    <input type="number"
-    name="nip"
-    placeholder="Masukkan 18 NIP anda"
-    class="form-control @error('nip','addAdmin') is-invalid @enderror"
-    value="{{ old('nip') }}">
+                                            <label class="form-label fw-bold">NIP</label>
+                                            <input type="text"
+                                                name="nip"
+                                                placeholder="Masukkan 18 NIP anda"
+                                                class="form-control @error('nip','addAdmin') is-invalid @enderror"
+                                                value="{{ old('nip') }}"
+                                                maxlength="18"
+                                                inputmode="numeric"
+                                                pattern="[0-9]{18}"
+                                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,18);"
+                                                required>
 
-@error('nip','addAdmin')
-    <div class="invalid-feedback">{{ $message }}</div>
-@enderror
-</div>
+                                            @error('nip','addAdmin')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
 
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold">Role</label>
@@ -933,17 +940,16 @@
                                         </div>
 
                                         <div class="col-md-6 mb-3">
-    <label class="form-label fw-bold">Nama Admin</label>
-<input type="text"
-    name="nama_admin"
-    class="form-control @error('nama_admin','addAdmin') is-invalid @enderror"
-    value="{{ old('nama_admin') }}">
+                                            <label class="form-label fw-bold">Nama Admin</label>
+                                            <input type="text"
+                                                name="nama_admin"
+                                                class="form-control @error('nama_admin','addAdmin') is-invalid @enderror"
+                                                value="{{ old('nama_admin') }}">
 
-@error('nama_admin','addAdmin')
-    <div class="invalid-feedback">{{ $message }}</div>
-@enderror
-</div>
-
+                                            @error('nama_admin','addAdmin')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
 
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold">Bagian</label>
@@ -956,54 +962,73 @@
 
                                         <div class="col-12 mb-3">
                                             <label class="form-label fw-bold">Password</label>
+
                                             <div class="input-group password-wrapper">
                                                 <input type="password"
                                                     name="password_admin"
                                                     id="password_admin_modal"
-                                                    class="form-control"
+                                                    class="form-control @error('password_admin','addAdmin') is-invalid @enderror"
+                                                    minlength="8"
                                                     maxlength="20"
                                                     required>
+
                                                 <button type="button"
                                                     class="btn btn-outline-secondary password-toggle"
                                                     data-target="password_admin_modal">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
+
+                                            @error('password_admin','addAdmin')
+                                            <div class="invalid-feedback d-block">
+                                                {{ $message }}
+                                            </div>
+                                            @enderror
                                         </div>
+
                                         <div class="col-12 mb-3">
                                             <label class="form-label fw-bold">Konfirmasi password</label>
+
                                             <div class="input-group password-wrapper">
                                                 <input type="password"
                                                     name="password_admin_confirmation"
                                                     id="password_admin_confirm_modal"
-                                                    class="form-control"
+                                                    class="form-control @error('password_admin','addAdmin') is-invalid @enderror"
+                                                    minlength="8"
                                                     maxlength="20"
                                                     required>
+
                                                 <button type="button"
                                                     class="btn btn-outline-secondary password-toggle"
                                                     data-target="password_admin_confirm_modal">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
+
+                                            @error('password_admin','addAdmin')
+                                            <div class="invalid-feedback d-block">
+                                                {{ $message }}
+                                            </div>
+                                            @enderror
+
                                         </div>
+
                                     </div>
 
-                                </div>
-
-                                <div class="modal-footer">
-                                    <button class="btn btn-secondary" data-bs-dismiss="modal">
-                                        Batal
-                                    </button>
-                                    <button class="btn btn-success" type="submit">
-                                        <i class="fas fa-save me-1"></i> Simpan Admin
-                                    </button>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" data-bs-dismiss="modal">
+                                            Batal
+                                        </button>
+                                        <button class="btn btn-success" type="submit">
+                                            <i class="fas fa-save me-1"></i> Simpan Admin
+                                        </button>
+                                    </div>
                                 </div>
 
                             </form>
 
                         </div>
                     </div>
-                    
                 </div>
 
                 @foreach ($profil as $p)
@@ -1228,7 +1253,6 @@
                 </div>
                 @endforeach
 
-
                 @foreach ($runningtext as $r)
                 <div class="modal fade" id="modalEditRunningText-{{ $r->id_text }}" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -1269,26 +1293,30 @@
                                 @csrf
                                 <div class="modal-body">
                                     <label class="form-label fw-bold">NIP</label>
-                                   <input type="number"
-    name="nip"
-    placeholder="Masukan 18 NIP anda"
-    class="form-control @error('nip', "editAdmin-$n->id_admin") is-invalid @enderror"
-    value="{{ old('nip', $n->nip) }}">
+                                    <input type="text"
+                                        name="nip"
+                                        placeholder="Masukkan 18 NIP anda"
+                                        class="form-control @error('nip', 'editAdmin-'.$n->id_admin) is-invalid @enderror"
+                                        value="{{ old('nip', $n->nip) }}"
+                                        maxlength="18"
+                                        inputmode="numeric"
+                                        pattern="[0-9]{18}"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,18);"
+                                        required>
 
-@error('nip', "editAdmin-$n->id_admin")
-    <div class="invalid-feedback d-block">{{ $message }}</div>
-@enderror
-
+                                    @error('nip', 'editAdmin-'.$n->id_admin)
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
 
                                     <label class="form-label fw-bold">Nama Admin:</label>
-                                <input type="text"
-    name="nama_admin"
-    class="form-control @error('nama_admin', "editAdmin-$n->id_admin") is-invalid @enderror"
-    value="{{ old('nama_admin', $n->nama_admin) }}">
+                                    <input type="text"
+                                        name="nama_admin"
+                                        class="form-control @error('nama_admin', " editAdmin-$n->id_admin") is-invalid @enderror"
+                                    value="{{ old('nama_admin', $n->nama_admin) }}">
 
-@error('nama_admin', "editAdmin-$n->id_admin")
-    <div class="invalid-feedback d-block">{{ $message }}</div>
-@enderror
+                                    @error('nama_admin', "editAdmin-$n->id_admin")
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
 
                                     <label class="form-label fw-bold">Bagian:</label>
                                     <input type="text"
@@ -1298,37 +1326,58 @@
                                         value="{{ $n->bagian }}"
                                         required>
 
-                                    <label class="form-label fw-bold">Password (Kosongkan jika tidak diganti):</label>
-                                    <div class="input-group password-wrapper">
-                                        <input type="password"
-                                            name="password_admin"
-                                            id="password_edit_{{ $n->id_admin }}"
-                                            class="form-control"
-                                            maxlength="20">
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label fw-bold">
+                                            Password (Kosongkan jika tidak diganti)
+                                        </label>
 
-                                        <button type="button"
-                                            class="btn btn-outline-secondary password-toggle"
-                                            data-target="password_edit_{{ $n->id_admin }}"
-                                            aria-label="Toggle password">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                                        <div class="input-group password-wrapper">
+                                            <input type="password"
+                                                name="password_admin"
+                                                id="password_edit_{{ $n->id_admin }}"
+                                                class="form-control @error('password_admin','editAdmin-'.$n->id_admin) is-invalid @enderror"
+                                                minlength="8"
+                                                maxlength="20">
+
+                                            <button type="button"
+                                                class="btn btn-outline-secondary password-toggle"
+                                                data-target="password_edit_{{ $n->id_admin }}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+
+                                        @error('password_admin','editAdmin-'.$n->id_admin)
+                                        <div class="invalid-feedback d-block">
+                                            {{ $message }}
+                                        </div>
+                                        @enderror
                                     </div>
 
-                                    <label class="form-label fw-bold">Konfirmasi password (Kosongkan jika tidak diganti):</label>
-                                    <div class="input-group password-wrapper">
-                                        <input type="password"
-                                            name="password_admin_confirmation"
-                                            id="password_edit_confirm_{{ $n->id_admin }}"
-                                            class="form-control"
-                                            maxlength="20">
+                                    <div class="col-12 mb-3">
+                                        <label class="form-label fw-bold">Konfirmasi password</label>
 
-                                        <button type="button"
-                                            class="btn btn-outline-secondary password-toggle"
-                                            data-target="password_edit_confirm_{{ $n->id_admin }}"
-                                            aria-label="Toggle password">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                                        <div class="input-group password-wrapper">
+                                            <input type="password"
+                                                name="password_admin_confirmation"
+                                                id="password_edit_confirm_{{ $n->id_admin }}"
+                                                class="form-control @error('password_admin','editAdmin-'.$n->id_admin) is-invalid @enderror"
+                                                minlength="8"
+                                                maxlength="20">
+
+                                            <button type="button"
+                                                class="btn btn-outline-secondary password-toggle"
+                                                data-target="password_edit_confirm_{{ $n->id_admin }}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+
+                                        @error('password_admin','editAdmin-'.$n->id_admin)
+                                        <div class="invalid-feedback d-block">
+                                            {{ $message }}
+                                        </div>
+                                        @enderror
                                     </div>
+
                                 </div>
 
                                 <div class="modal-footer">
@@ -1346,38 +1395,38 @@
         </div>
     </main>
 
-<!-- Ganti bagian script di akhir file superadmin.blade.php -->
+    <!-- Ganti bagian script di akhir file superadmin.blade.php -->
 
-<!-- AUTO LOGOUT FORM (JANGAN DIHAPUS) -->
-<form id="auto-logout-form"
-    action="{{ route('logout') }}"
-    method="POST"
-    style="display:none;">
-    @csrf
-</form>
+    <!-- AUTO LOGOUT FORM (JANGAN DIHAPUS) -->
+    <form id="auto-logout-form"
+        action="{{ route('logout') }}"
+        method="POST"
+        style="display:none;">
+        @csrf
+    </form>
 
-<script src="{{ asset('superad.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('superad.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-{{-- Script untuk membuka modal tambah admin jika ada error --}}
-@if ($errors->hasBag('addAdmin'))
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    new bootstrap.Modal(document.getElementById('modalTambahNormalAdmin')).show();
-});
-</script>
-@endif
-
-{{-- Script untuk membuka modal edit admin jika ada error --}}
-@foreach ($normaladmin as $n)
-    @if ($errors->hasBag("editAdmin-$n->id_admin"))
+    {{-- Script untuk membuka modal tambah admin jika ada error --}}
+    @if ($errors->hasBag('addAdmin'))
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        new bootstrap.Modal(document.getElementById('modalEditNormalAdmin-{{ $n->id_admin }}')).show();
-    });
+        document.addEventListener('DOMContentLoaded', function() {
+            new bootstrap.Modal(document.getElementById('modalTambahNormalAdmin')).show();
+        });
     </script>
     @endif
-@endforeach
+
+    {{-- Script untuk membuka modal edit admin jika ada error --}}
+    @foreach ($normaladmin as $n)
+    @if ($errors->hasBag("editAdmin-$n->id_admin"))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            new bootstrap.Modal(document.getElementById('modalEditNormalAdmin-{{ $n->id_admin }}')).show();
+        });
+    </script>
+    @endif
+    @endforeach
 
 </body>
 

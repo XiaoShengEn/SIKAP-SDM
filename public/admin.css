@@ -1218,9 +1218,6 @@ h5.fw-bold {
     transform: none !important;
     transition: none !important;
 }
-#profil .modern-card {
-    overflow: visible !important;
-}
 
 .admin-table-wrapper-fluid {
     width: 100%;

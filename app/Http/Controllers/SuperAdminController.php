@@ -285,67 +285,54 @@ class SuperAdminController extends Controller
     // ============================================================
     // NORMAL ADMIN CRUD — PK = id_admin
     // ============================================================
-public function normalAdminStore(Request $request)
-{
-    $request->validateWithBag('addAdmin', [
-        'nama_admin'     => 'required|string|max:50|unique:tb_admin,nama_admin',
-        'bagian'         => 'required|string|max:50',
-        'nip'            => 'required|digits:18|unique:tb_admin,nip',
-        'password_admin' => 'required|string|min:6|max:20|confirmed',
-        'role_admin'     => 'required|in:normaladmin,superadmin',
-    ], [
-        'nama_admin.unique' => 'Nama sudah ditambahkan sebagai admin.',
-        'nip.unique'        => 'NIP sudah ditambahkan sebagai admin.',
-    ]);
+    public function normalAdminStore(Request $request)
+    {
+        $request->validateWithBag('addAdmin', [
+            'nama_admin'     => 'required|string|max:50|unique:tb_admin,nama_admin',
+            'bagian'         => 'required|string|max:50',
+            'nip'            => 'required|digits:18|unique:tb_admin,nip',
+            'password_admin' => 'required|string|min:8|max:20|confirmed',
+            'role_admin'     => 'required|in:normaladmin,superadmin',
+        ], [
+            'nama_admin.unique' => 'Nama sudah ditambahkan sebagai admin.',
+            'nip.unique'        => 'NIP sudah ditambahkan sebagai admin.',
+            'password_admin.min' => 'Password minimal 8 karakter.',
+            'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
 
-    User::create([
-        'nama_admin'     => $request->nama_admin,
-        'bagian'         => $request->bagian,
-        'nip'            => $request->nip,
-        'password_admin' => Hash::make($request->password_admin),
-        'role_admin'     => $request->role_admin,
-    ]);
+        ]);
 
     return back()->withFragment('normaladmin')->with('success', 'Normal admin berhasil ditambahkan!');
-}
-
-// ============================================================
-    // UPDATE NORMAL ADMIN — PK = id_admin
-    // ============================================================
-public function normalAdminUpdate(Request $request, $id)
-{
-    $admin = User::where('id_admin', $id)->firstOrFail();
-
-    $request->validateWithBag("editAdmin-$id", [
-        'nama_admin' => 'required|string|max:30|unique:tb_admin,nama_admin,' . $id . ',id_admin',
-        'bagian'     => 'required|string|max:30',
-        'nip'        => 'required|digits:18|unique:tb_admin,nip,' . $id . ',id_admin',
-        'password_admin' => 'nullable|string|min:6|max:20|confirmed',
-    ], [
-        'nama_admin.unique' => 'Nama sudah digunakan oleh admin lain.',
-        'nip.unique'        => 'NIP sudah digunakan oleh admin lain.',
-    ]);
-
-    $admin->nama_admin = $request->nama_admin;
-    $admin->bagian     = $request->bagian;
-    $admin->nip        = $request->nip;
-
-    if ($request->filled('password_admin')) {
-        $admin->password_admin = Hash::make($request->password_admin);
+        return back()->withFragment('normaladmin')->with('success', 'Normal admin berhasil ditambahkan!');
     }
 
-    $admin->save();
+    // ============================================================
+    // UPDATE NORMAL ADMIN — PK = id_admin
+    // ============================================================
+    public function normalAdminUpdate(Request $request, $id)
+    {
+        $admin = User::where('id_admin', $id)->firstOrFail();
+
+        $request->validateWithBag("editAdmin-$id", [
+            'nama_admin' => 'required|string|max:30|unique:tb_admin,nama_admin,' . $id . ',id_admin',
+            'bagian'     => 'required|string|max:30',
+            'nip'        => 'required|digits:18|unique:tb_admin,nip,' . $id . ',id_admin',
+            'password_admin' => 'nullable|string|min:8|max:20|confirmed',
+        ], [
+            'nama_admin.unique' => 'Nama sudah digunakan oleh admin lain.',
+            'nip.unique'        => 'NIP sudah digunakan oleh admin lain.',
+            'password_admin.min' => 'Password minimal 8 karakter.',
+            'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
+        ]);
 
     return back()->withFragment('normaladmin')->with('success', 'Normal admin berhasil diperbarui!');
 
         $admin->nama_admin = $request->nama_admin;
         $admin->bagian     = $request->bagian;
-        $admin->nip = $request->nip;
+        $admin->nip        = $request->nip;
 
         if ($request->filled('password_admin')) {
             $admin->password_admin = Hash::make($request->password_admin);
         }
-
 
         $admin->save();
 

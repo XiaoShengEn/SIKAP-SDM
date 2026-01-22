@@ -78,7 +78,6 @@ class WelcomeController extends Controller
                 return count($texts)
                     ? $texts
                     : ['Hari ini belum ada pegawai yang berulang tahun'];
-
             } catch (\Throwable $e) {
                 return ['Hari ini belum ada pegawai yang berulang tahun'];
             }
