@@ -120,10 +120,10 @@
                 </h5>
             </div>
 
-            <div class="card-body">
+            <div class="card-body py-1">
                 <!-- PAKAI WRAPPER ADMIN + TV MODE -->
                 <div class="admin-table-wrapper agenda-scroll-container tv-mode" id="agendaScroll">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 py">
                         <thead class="sticky-thead-admin">
                             <tr>
                                 <th>Tanggal</th>

@@ -14,60 +14,85 @@ class WelcomeController extends Controller
         Carbon::setLocale('id');
         setlocale(LC_TIME, 'id_ID.utf8');
 
+        //  DATA DARI DATABASE
         $profil = DB::table('tb_profil')->orderBy('id_profil')->get();
+
         $videos = DB::table('tb_video')->orderBy('video_id')->get();
-        $playlist = $videos->pluck('video_kegiatan')->map(fn($v) => asset('videos/' . $v))->toArray();
+        $playlist = $videos->pluck('video_kegiatan')
+            ->map(fn ($v) => asset('videos/' . $v))
+            ->toArray();
+
         $agendaKegiatan = DB::table('tb_kegiatan')
             ->whereDate('tanggal_kegiatan', '>=', Carbon::today('Asia/Jakarta'))
             ->orderBy('tanggal_kegiatan')
             ->orderBy('jam')
             ->get();
-        $runningtext = DB::table('tb_runningtext')->orderBy('id_text')->pluck('isi_text')->toArray();
 
-        $ultahText = Cache::remember('ultah_hari_ini', 10, function() {
-        $token = config('services.kemendagri.token');
-        if (!$token) {
-            return ['Hari ini belum ada pegawai yang berulang tahun'];
-        }
+        $runningtext = DB::table('tb_runningtext')
+            ->orderBy('id_text')
+            ->pluck('isi_text')
+            ->toArray();
 
-        $texts = [];
-        $date = Carbon::today('Asia/Jakarta'); 
+        //  ultah dari API menggunakan cache  
 
-        $res = Http::withoutVerifying()
-            ->withHeaders([
-                'auth' => $token,
-                'Accept' => 'application/json',
-            ])
-            ->asForm()
-            ->timeout(15)
-            ->post(config('services.kemendagri.url'), [
-                'hari_ini' => $date->format('Y-m-d')
-            ]);
+        $cacheKey = 'ultah_' . Carbon::today('Asia/Jakarta')->format('Y-m-d');
 
-        $data = $res->successful() ? $res->json('data') : [];
+        $ultahText = Cache::remember($cacheKey, now()->addDay(), function () {
 
-        $found = [];
-        foreach ($data as $pegawai) {
-            if (substr($pegawai['tanggal_lahir'], 5, 5) === $date->format('m-d')) {
-                $found[] = $pegawai['nama'];
+            $token = config('services.kemendagri.token');
+            $url   = config('services.kemendagri.url');
+
+            if (!$token || !$url) {
+                return ['Hari ini belum ada pegawai yang berulang tahun'];
             }
-        }
 
-        if (!empty($found)) {
-            foreach ($found as $nama) {
-                $texts[] = "🎉 Selamat Berulang Tahun : {$nama} 🎉";
+            try {
+                $res = Http::withoutVerifying()
+                    ->withHeaders([
+                        'auth' => $token,
+                        'Accept' => 'application/json',
+                    ])
+                    ->asForm()
+                    ->timeout(15)
+                    ->post($url, [
+                        'hari_ini' => Carbon::today('Asia/Jakarta')->format('Y-m-d')
+                    ]);
+
+                if (!$res->successful()) {
+                    return ['Hari ini belum ada pegawai yang berulang tahun'];
+                }
+
+                $data = $res->json('data') ?? [];
+
+                if (count($data) === 0) {
+                    return ['Hari ini belum ada pegawai yang berulang tahun'];
+                }
+
+                $texts = [];
+                foreach ($data as $pegawai) {
+                    if (!empty($pegawai['nama'])) {
+                        $texts[] = "🎉 Selamat Berulang Tahun : {$pegawai['nama']} 🎉";
+                    }
+                }
+
+                return count($texts)
+                    ? $texts
+                    : ['Hari ini belum ada pegawai yang berulang tahun'];
+
+            } catch (\Throwable $e) {
+                return ['Hari ini belum ada pegawai yang berulang tahun'];
             }
-        } else {
-            $texts[] = 'Hari ini belum ada pegawai yang berulang tahun';
-        }
+        });
 
-        return $texts;
-    });
+        // gabungkan dengan running text lain
+        $runningtext = array_merge($ultahText, $runningtext);
 
-    // gabungkan dengan running text lain
-    $runningtext = array_merge($ultahText, $runningtext);
-
-    return view('welcome', compact('profil', 'videos', 'playlist', 'agendaKegiatan', 'runningtext'));
-
+        return view('welcome', compact(
+            'profil',
+            'videos',
+            'playlist',
+            'agendaKegiatan',
+            'runningtext'
+        ));
     }
-    }
+}
