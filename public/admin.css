@@ -1310,3 +1310,58 @@ h5.fw-bold {
     width: 100%;
     table-layout: fixed;
 }
+
+/* =================================
+   WARNA BARIS PENUH UNTUK AGENDA
+   - Hijau: Hari ini
+   - Kuning: Besok
+   - Abu-abu: Setelah besok
+================================= */
+
+/* HARI INI - HIJAU (semua cell dalam baris) */
+.agenda-today td {
+    background-color: #28a745 !important;
+    color: white !important;
+    font-weight: 500;
+}
+
+/* BESOK - KUNING (semua cell dalam baris) */
+.agenda-tomorrow td {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+    font-weight: 500;
+}
+
+/* SETELAH BESOK - ABU-ABU (semua cell dalam baris) */
+.agenda-other td {
+    background-color: #e9ecef !important; /* abu soft */
+    color: #212529 !important;
+}
+
+
+/* Hover effect tetap berfungsi */
+.agenda-today:hover td,
+.agenda-tomorrow:hover td,
+.agenda-other:hover td {
+    filter: brightness(0.95);
+}
+
+/* Button styling di dalam baris berwarna */
+.agenda-today .btn,
+.agenda-tomorrow .btn,
+.agenda-other .btn {
+    opacity: 1;
+}
+
+/* Pastikan text tetap readable di button */
+.agenda-today .btn-warning,
+.agenda-tomorrow .btn-warning,
+.agenda-other .btn-warning {
+    color: #212529;
+}
+
+.agenda-today .btn-danger,
+.agenda-tomorrow .btn-danger,
+.agenda-other .btn-danger {
+    color: white;
+}

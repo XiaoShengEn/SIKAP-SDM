@@ -1,179 +1,340 @@
 /* =================================
-   NORMAL ADMIN JS (FINAL)
-   - Pagination
-   - Search
-   - Empty row stabil
-   - Remember page after edit
-   - Remember collapse
-   - Maxlength counter
+   NORMAL ADMIN JS - REAL-TIME AJAX
+   - Real-time data loading
+   - Warna baris penuh (hijau/kuning/abu)
+   - Sorting: Hari ini → Besok → Setelah besok
+   - Search & Pagination
    - Auto logout
 ================================= */
 
-/* =================================
-   PAGINATION CONFIG
-================================= */
-const rowsPerPageMap = {
-    agenda: 4,
-};
-
-/* =================================
-   GLOBAL PAGINATION SYSTEM
-================================= */
-function initTablePagination(tableName) {
-    const tbody = document.getElementById(tableName + "Tbody");
-    const searchInput = document.getElementById(tableName + "Search");
-    const prevBtn = document.getElementById(tableName + "PrevBtn");
-    const nextBtn = document.getElementById(tableName + "NextBtn");
-
-    if (!tbody) return;
-
-    const allRows = Array.from(tbody.querySelectorAll("tr"));
-    const allDataRows = allRows.filter(row => {
-        const firstCell = row.querySelector("td");
-        return firstCell && !firstCell.hasAttribute("colspan");
-    });
-
-    let filteredRows = [...allDataRows];
-    let currentPage = 0;
-
-    window.__paginationState = window.__paginationState || {};
-    const rowsPerPage = rowsPerPageMap[tableName] || 4;
-
-    const emptyRowClass = tableName + "-empty-row";
-    const colCount = allDataRows[0]
-        ? allDataRows[0].querySelectorAll("td").length
-        : 6;
-
-    let emptyRows = tbody.querySelectorAll("." + emptyRowClass);
-    if (emptyRows.length < rowsPerPage) {
-        for (let i = emptyRows.length; i < rowsPerPage; i++) {
-            const tr = document.createElement("tr");
-            tr.className = emptyRowClass;
-            tr.innerHTML = `<td colspan="${colCount}" style="height:60px;border:none;"></td>`;
-            tbody.appendChild(tr);
-        }
-    }
-
-    emptyRows = tbody.querySelectorAll("." + emptyRowClass);
-
-    function showPage(page) {
-        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-
-        if (page < 0) page = 0;
-        if (page >= totalPages && totalPages > 0) page = totalPages - 1;
-
-        currentPage = page;
-        window.__paginationState[tableName] = currentPage;
-
-        allDataRows.forEach(r => r.style.display = "none");
-        emptyRows.forEach(r => r.style.display = "none");
-
-        const start = currentPage * rowsPerPage;
-        const visible = filteredRows.slice(start, start + rowsPerPage);
-
-        visible.forEach(r => r.style.display = "table-row");
-
-        emptyRows
-            .slice(0, rowsPerPage - visible.length)
-            .forEach(r => r.style.display = "table-row");
-
-        if (prevBtn && nextBtn) {
-            prevBtn.disabled = currentPage === 0;
-            nextBtn.disabled = currentPage >= totalPages - 1 || totalPages === 0;
-        }
-    }
-
-    function performSearch() {
-        const term = searchInput ? searchInput.value.toLowerCase().trim() : "";
-        filteredRows = term === ""
-            ? [...allDataRows]
-            : allDataRows.filter(row =>
-                (row.getAttribute("data-search") || "").includes(term)
-            );
-
-        showPage(0);
-    }
-
-    if (searchInput) searchInput.addEventListener("input", performSearch);
-    if (prevBtn) prevBtn.addEventListener("click", () => showPage(currentPage - 1));
-    if (nextBtn) nextBtn.addEventListener("click", () => showPage(currentPage + 1));
-
-    /* 🔥 RESTORE PAGE AFTER EDIT */
-    const savedPage = sessionStorage.getItem(tableName + "_lastPage");
-    if (savedPage !== null) {
-        showPage(parseInt(savedPage));
-        sessionStorage.removeItem(tableName + "_lastPage");
-    } else {
-        showPage(0);
-    }
-}
-
-/* =================================
-   INIT AGENDA
-================================= */
-document.addEventListener("DOMContentLoaded", () => {
-    initTablePagination("agenda");
-
-    const clearBtn = document.getElementById("agendaClearSearch");
+document.addEventListener("DOMContentLoaded", function() {
+    
+    const tbody = document.getElementById("agendaTbody");
     const searchInput = document.getElementById("agendaSearch");
+    const clearSearchBtn = document.getElementById("agendaClearSearch");
+    const prevBtn = document.getElementById("agendaPrevBtn");
+    const nextBtn = document.getElementById("agendaNextBtn");
+    const totalBadge = document.getElementById("agendaTotalBadge");
 
-    if (clearBtn && searchInput) {
-        clearBtn.addEventListener("click", () => {
-            searchInput.value = "";
-            initTablePagination("agenda");
+    // Form elements
+    const formTambah = document.getElementById("form-tambah-agenda");
+    const formEdit = document.getElementById("form-edit-agenda");
+    const modalEditAgenda = document.getElementById("modalEditAgenda");
+    const modalTambahAgenda = document.getElementById("modalTambahAgenda");
+
+    // Edit form inputs
+    const edit_id = document.getElementById("edit_id");
+    const edit_tanggal = document.getElementById("edit_tanggal");
+    const edit_jam = document.getElementById("edit_jam");
+    const edit_nama = document.getElementById("edit_nama");
+    const edit_tempat = document.getElementById("edit_tempat");
+    const edit_disposisi = document.getElementById("edit_disposisi");
+    const edit_keterangan = document.getElementById("edit_keterangan");
+
+    let currentPage = 1;
+    let searchTerm = "";
+
+    /* ===== GET CSRF TOKEN ===== */
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]').content;
+    }
+
+    /* ===== WARNA BARIS PENUH BERDASARKAN STATUS ===== */
+    function getRowClass(status) {
+        if (status === 'today') return 'agenda-today';
+        if (status === 'tomorrow') return 'agenda-tomorrow';
+        return 'agenda-other';
+    }
+
+    /* ===== LOAD DATA AGENDA ===== */
+    async function loadKegiatan(page = 1) {
+        currentPage = page;
+
+        try {
+            const res = await fetch(`/admin/kegiatan/list?page=${page}`);
+            if (!res.ok) throw new Error("HTTP " + res.status);
+
+            const result = await res.json();
+            const data = result.data || [];
+            const total = result.total || 0;
+
+            // Update badge total
+            if (totalBadge) {
+                totalBadge.textContent = `${total} Data`;
+            }
+
+            tbody.innerHTML = "";
+
+            if (!data.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Belum ada agenda</td></tr>`;
+                if (prevBtn) prevBtn.disabled = true;
+                if (nextBtn) nextBtn.disabled = true;
+                return;
+            }
+
+            data.forEach(k => {
+                const row = document.createElement("tr");
+                row.className = getRowClass(k.status);
+                
+                // Tambahkan class warna baris penuh
+                row.className = getRowClass(k.status);
+                
+                row.setAttribute("data-search", 
+                    `${k.tanggal_label} ${k.nama_kegiatan} ${k.tempat || ''} ${k.disposisi || ''} ${k.keterangan || ''}`.toLowerCase()
+                );
+                
+                row.innerHTML = `
+                    <td data-label="Tanggal">
+                        <div>${k.tanggal_label}</div>
+                        ${k.jam ? `<div class="small">${k.jam} WIB</div>` : ""}
+                    </td>
+                    <td data-label="Kegiatan">${k.nama_kegiatan}</td>
+                    <td data-label="Tempat">${k.tempat || "-"}</td>
+                    <td data-label="Disposisi">${k.disposisi || "-"}</td>
+                    <td data-label="Keterangan">${k.keterangan || "-"}</td>
+                    <td data-label="Aksi" class="td-aksi">
+                        <div class="aksi-group">
+                            <button class="btn btn-sm btn-warning edit-btn" data-id="${k.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="${k.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Update navigation buttons
+            if (prevBtn) prevBtn.disabled = result.current_page <= 1;
+            if (nextBtn) nextBtn.disabled = result.current_page >= result.last_page;
+
+            // Apply search filter if active
+            if (searchTerm) {
+                performSearch();
+            }
+
+        } catch (e) {
+            console.error("Error loading agenda:", e);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Gagal memuat data</td></tr>`;
+        }
+    }
+
+    /* ===== SEARCH FUNCTION ===== */
+    function performSearch() {
+        const term = searchTerm.toLowerCase().trim();
+        const rows = tbody.querySelectorAll("tr[data-search]");
+
+        rows.forEach(row => {
+            const searchData = row.getAttribute("data-search");
+            row.style.display = searchData.includes(term) ? "" : "none";
         });
     }
-});
 
-/* =================================
-   REMEMBER PAGE AFTER EDIT
-================================= */
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("form").forEach(form => {
-        form.addEventListener("submit", () => {
-            if (
-                window.__paginationState &&
-                window.__paginationState.agenda !== undefined
-            ) {
-                sessionStorage.setItem(
-                    "agenda_lastPage",
-                    window.__paginationState.agenda
-                );
+    /* ===== EVENT: SEARCH INPUT ===== */
+    if (searchInput) {
+        searchInput.addEventListener("input", function() {
+            searchTerm = this.value;
+            performSearch();
+        });
+    }
+
+    /* ===== EVENT: CLEAR SEARCH ===== */
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener("click", function() {
+            searchInput.value = "";
+            searchTerm = "";
+            performSearch();
+        });
+    }
+
+    /* ===== EVENT: PAGINATION BUTTONS ===== */
+    if (prevBtn) {
+        prevBtn.addEventListener("click", () => {
+            if (currentPage > 1) {
+                loadKegiatan(currentPage - 1);
             }
         });
-    });
-});
+    }
 
-/* =================================
-   REMEMBER COLLAPSE (AGENDA)
-================================= */
-document.addEventListener("DOMContentLoaded", () => {
+    if (nextBtn) {
+        nextBtn.addEventListener("click", () => {
+            loadKegiatan(currentPage + 1);
+        });
+    }
+
+    /* ===== SUBMIT TAMBAH AGENDA ===== */
+    if (formTambah) {
+        formTambah.addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const res = await fetch("/admin/kegiatan/store", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": getCsrfToken()
+                    },
+                    body: formData
+                });
+
+                const result = await res.json();
+
+                if (!res.ok || !result.success) {
+                    throw new Error(result.message || "Gagal menambahkan agenda");
+                }
+
+                // Close modal
+                const modalInstance = bootstrap.Modal.getInstance(modalTambahAgenda);
+                if (modalInstance) modalInstance.hide();
+
+                // Reset form
+                this.reset();
+
+                // Reload data
+                loadKegiatan(currentPage);
+
+                alert("Agenda berhasil ditambahkan!");
+
+            } catch (error) {
+                console.error("Error:", error);
+                alert(error.message || "Terjadi kesalahan saat menambahkan agenda");
+            }
+        });
+    }
+
+    /* ===== CLICK EDIT & DELETE BUTTONS ===== */
+    if (tbody) {
+        tbody.addEventListener("click", async function(e) {
+
+            // HANDLE EDIT
+            const editBtn = e.target.closest(".edit-btn");
+            if (editBtn) {
+                const id = editBtn.dataset.id;
+
+                try {
+                    const res = await fetch(`/admin/kegiatan/${id}`);
+                    if (!res.ok) throw new Error("Gagal mengambil data");
+
+                    const k = await res.json();
+
+                    // Fill form
+                    edit_id.value = k.kegiatan_id;
+                    edit_tanggal.value = k.tanggal_kegiatan;
+                    edit_jam.value = k.jam || "";
+                    edit_nama.value = k.nama_kegiatan;
+                    edit_tempat.value = k.tempat || "";
+                    edit_disposisi.value = k.disposisi || "";
+                    edit_keterangan.value = k.keterangan || "";
+
+                    // Show modal
+                    const modalInstance = new bootstrap.Modal(modalEditAgenda);
+                    modalInstance.show();
+
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("Gagal mengambil data agenda");
+                }
+            }
+
+            // HANDLE DELETE
+            const deleteBtn = e.target.closest(".delete-btn");
+            if (deleteBtn) {
+                const id = deleteBtn.dataset.id;
+                
+                if (!confirm("Yakin ingin menghapus agenda ini?")) return;
+
+                try {
+                    const res = await fetch(`/admin/kegiatan/${id}`, {
+                        method: "DELETE",
+                        headers: {
+                            "X-CSRF-TOKEN": getCsrfToken()
+                        }
+                    });
+
+                    const result = await res.json();
+
+                    if (!res.ok || !result.success) {
+                        throw new Error("Gagal menghapus agenda");
+                    }
+
+                    loadKegiatan(currentPage);
+                    alert("Agenda berhasil dihapus!");
+
+                } catch (error) {
+                    console.error("Error:", error);
+                    alert("Gagal menghapus agenda");
+                }
+            }
+        });
+    }
+
+    /* ===== SUBMIT EDIT AGENDA ===== */
+    if (formEdit) {
+        formEdit.addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const id = edit_id.value;
+            const formData = new FormData(this);
+
+            try {
+                const res = await fetch(`/admin/kegiatan/${id}`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": getCsrfToken()
+                    },
+                    body: formData
+                });
+
+                const result = await res.json();
+
+                if (!res.ok || !result.success) {
+                    throw new Error(result.message || "Gagal mengupdate agenda");
+                }
+
+                // Close modal
+                const modalInstance = bootstrap.Modal.getInstance(modalEditAgenda);
+                if (modalInstance) modalInstance.hide();
+
+                // Reload data
+                currentPage = 1;
+                loadKegiatan(1);
+
+
+                alert("Agenda berhasil diperbarui!");
+
+            } catch (error) {
+                console.error("Error:", error);
+                alert(error.message || "Gagal mengupdate agenda");
+            }
+        });
+    }
+
+    /* ===== REMEMBER COLLAPSE ===== */
     const STORAGE_KEY = "open-section";
     const agendaCollapse = document.getElementById("agendaTableBody");
 
-    if (!agendaCollapse) return;
+    if (agendaCollapse) {
+        // RESTORE
+        if (localStorage.getItem(STORAGE_KEY) === "agendaTableBody") {
+            bootstrap.Collapse.getOrCreateInstance(agendaCollapse, {
+                toggle: false
+            }).show();
+        }
 
-    // RESTORE
-    if (localStorage.getItem(STORAGE_KEY) === "agendaTableBody") {
-        bootstrap.Collapse.getOrCreateInstance(agendaCollapse, {
-            toggle: false
-        }).show();
+        // SAVE
+        agendaCollapse.addEventListener("show.bs.collapse", () => {
+            localStorage.setItem(STORAGE_KEY, "agendaTableBody");
+        });
+
+        agendaCollapse.addEventListener("hidden.bs.collapse", () => {
+            localStorage.removeItem(STORAGE_KEY);
+        });
     }
 
-    // SAVE
-    agendaCollapse.addEventListener("show.bs.collapse", () => {
-        localStorage.setItem(STORAGE_KEY, "agendaTableBody");
-    });
-
-    agendaCollapse.addEventListener("hidden.bs.collapse", () => {
-        localStorage.removeItem(STORAGE_KEY);
-    });
-});
-
-/* =================================
-   MAXLENGTH COUNTER
-================================= */
-document.addEventListener("DOMContentLoaded", () => {
+    /* ===== MAXLENGTH COUNTER ===== */
     document.querySelectorAll("input[maxlength], textarea[maxlength]").forEach(input => {
         const max = parseInt(input.getAttribute("maxlength"));
         if (!max) return;
@@ -192,23 +353,25 @@ document.addEventListener("DOMContentLoaded", () => {
         input.addEventListener("input", update);
         update();
     });
+
+    /* ===== AUTO LOGOUT ===== */
+    const AUTO_LOGOUT_INTERVAL = 1 * 60 * 1000;
+    let autoLogoutTimer;
+
+    function resetAutoLogoutTimer() {
+        const form = document.getElementById("auto-logout-form");
+        if (!form) return;
+
+        clearTimeout(autoLogoutTimer);
+        autoLogoutTimer = setTimeout(() => form.submit(), AUTO_LOGOUT_INTERVAL);
+    }
+
+    ["mousemove", "keydown", "click", "scroll", "touchstart"]
+        .forEach(e => document.addEventListener(e, resetAutoLogoutTimer, true));
+
+    resetAutoLogoutTimer();
+
+    /* ===== INITIALIZE ===== */
+    loadKegiatan(1);
+
 });
-
-/* =================================
-   AUTO LOGOUT
-================================= */
-const AUTO_LOGOUT_INTERVAL = 1 * 60 * 1000;
-let autoLogoutTimer;
-
-function resetAutoLogoutTimer() {
-    const form = document.getElementById("auto-logout-form");
-    if (!form) return;
-
-    clearTimeout(autoLogoutTimer);
-    autoLogoutTimer = setTimeout(() => form.submit(), AUTO_LOGOUT_INTERVAL);
-}
-
-["mousemove", "keydown", "click", "scroll", "touchstart"]
-    .forEach(e => document.addEventListener(e, resetAutoLogoutTimer, true));
-
-resetAutoLogoutTimer();
