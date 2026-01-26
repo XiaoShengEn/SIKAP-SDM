@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Pimpinan;
@@ -12,6 +11,7 @@ use App\Models\Video;
 use App\Models\Kegiatan;
 use App\Models\RunningText;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\JsonResponse;
 
 class SuperAdminController extends Controller
 {
@@ -176,74 +176,100 @@ class SuperAdminController extends Controller
         return back()->withFragment('video')->with('success', 'Video berhasil dihapus!');
     }
 
-    // ============================================================
-    // CRUD KEGIATAN
-    // ============================================================
-    public function kegiatanStore(Request $request)
-    {
-        $request->validate([
-            'tanggal_kegiatan' => 'required|date',
-            'jam'            => 'required|date_format:H:i',
-            'nama_kegiatan'    => 'required|string|max:50',
-            'disposisi'        => 'nullable|string|max:20',
-            'tempat'           => 'nullable|string|max:50',
-            'keterangan'       => 'nullable|string|max:50',
-        ]);
+// ============================================================
+// CRUD KEGIATAN + AJAX + PAGINATION
+// ============================================================
 
-        Kegiatan::create([
-            'tanggal_kegiatan' => $request->tanggal_kegiatan,
-            'jam'            => $request->jam,
-            'nama_kegiatan'    => $request->nama_kegiatan,
-            'disposisi'        => $request->disposisi,
-            'keterangan'       => $request->keterangan,
-            'tempat'           => $request->tempat,
-        ]);
+public function kegiatanList(Request $request)
+{
+    $kegiatan = Kegiatan::agendaOrder()->paginate(4);
 
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil ditambahkan!');
-    }
-
-    public function kegiatanUpdate(Request $request, $id)
-    {
-        $request->validate([
-            'tanggal_kegiatan' => 'nullable|date',
-            'jam'              => 'nullable|date_format:H:i',
-            'nama_kegiatan'    => 'required|string|max:50',
-            'disposisi'        => 'nullable|string|max:20',
-            'tempat'           => 'nullable|string|max:50',
-            'keterangan'       => 'nullable|string|max:50',
-        ]);
-
-        // ✅ Field wajib
-        $data = [
-            'nama_kegiatan' => $request->nama_kegiatan,
-            'disposisi'     => $request->disposisi,
-            'keterangan'    => $request->keterangan,
-            'tempat'        => $request->tempat,
+    $kegiatan->getCollection()->transform(function ($k) {
+        return [
+            'id' => $k->kegiatan_id,
+            'kegiatan_id' => $k->kegiatan_id,
+            'tanggal_kegiatan' => $k->tanggal_kegiatan,
+            'tanggal_label' => Carbon::parse($k->tanggal_kegiatan)->format('d M Y'),
+            'jam' => $k->jam ? Carbon::parse($k->jam)->format('H:i') : null,
+            'nama_kegiatan' => $k->nama_kegiatan,
+            'tempat' => $k->tempat,
+            'disposisi' => $k->disposisi,
+            'keterangan' => $k->keterangan,
         ];
+    });
 
-        // ✅ Update tanggal hanya kalau dikirim
-        if ($request->filled('tanggal_kegiatan')) {
-            $data['tanggal_kegiatan'] = $request->tanggal_kegiatan;
-        }
-
-        // ✅ Update jam hanya kalau dikirim
-        if ($request->filled('jam')) {
-            $data['jam'] = $request->jam;
-        }
-
-        Kegiatan::where('kegiatan_id', $id)->update($data);
-
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil diperbarui!');
-    }
+    return response()->json($kegiatan);
+}
 
 
+public function kegiatanDetail($id)
+{
+    $k = Kegiatan::where('kegiatan_id', $id)->firstOrFail();
 
-    public function kegiatanDelete($id)
-    {
-        Kegiatan::where('kegiatan_id', $id)->delete();
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil dihapus!');
-    }
+    return response()->json([
+        'kegiatan_id' => $k->kegiatan_id,
+        'tanggal_kegiatan' => $k->tanggal_kegiatan,
+        'jam' => $k->jam ? \Carbon\Carbon::parse($k->jam)->format('H:i') : null,
+        'nama_kegiatan' => $k->nama_kegiatan,
+        'tempat' => $k->tempat,
+        'disposisi' => $k->disposisi,
+        'keterangan' => $k->keterangan,
+    ]);
+}
 
+public function kegiatanStore(Request $request)
+{
+    $request->validate([
+        'tanggal_kegiatan' => 'required|date',
+        'jam' => 'required',
+        'nama_kegiatan' => 'required',
+        'tempat' => 'nullable',
+        'disposisi' => 'nullable',
+        'keterangan' => 'nullable',
+    ]);
+
+    Kegiatan::create([
+        'tanggal_kegiatan' => $request->tanggal_kegiatan,
+        'jam' => $request->jam,
+        'nama_kegiatan' => $request->nama_kegiatan,
+        'tempat' => $request->tempat,
+        'disposisi' => $request->disposisi,
+        'keterangan' => $request->keterangan,
+    ]);
+
+    return response()->json(['success' => true]);
+}
+
+public function kegiatanUpdate(Request $request, $id)
+{
+    $request->validate([
+        'tanggal_kegiatan' => 'required|date',
+        'jam' => 'required',
+        'nama_kegiatan' => 'required|string|max:50',
+        'tempat' => 'nullable|string|max:50',
+        'disposisi' => 'nullable|string|max:20',
+        'keterangan' => 'nullable|string|max:50',
+    ]);
+
+    $kegiatan = Kegiatan::where('kegiatan_id', $id)->firstOrFail();
+
+    $kegiatan->update([
+        'tanggal_kegiatan' => $request->tanggal_kegiatan,
+        'jam' => $request->jam,
+        'nama_kegiatan' => $request->nama_kegiatan,
+        'tempat' => $request->tempat,
+        'disposisi' => $request->disposisi,
+        'keterangan' => $request->keterangan,
+    ]);
+
+    return response()->json(['success' => true, 'message' => 'Agenda berhasil diperbarui!']);
+}
+
+public function kegiatanDelete($id)
+{
+    Kegiatan::where('kegiatan_id', $id)->delete();
+    return response()->json(['success' => true]);
+}
 
     // ============================================================
     // CRUD RUNNING TEXT
@@ -344,4 +370,5 @@ class SuperAdminController extends Controller
         User::where('id_admin', $id)->delete();
         return back()->withFragment('normaladmin')->with('success', 'Normal admin berhasil dihapus!');
     }
+    
 }

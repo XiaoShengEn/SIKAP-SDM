@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('admin.css') }}" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body>
@@ -286,8 +287,6 @@
                                     </button>
                                 </div>
 
-                                <hr>
-
                 </section>
 
                 <!-- ========================= AGENDA ========================= -->
@@ -303,7 +302,7 @@
                                 <h4 class="mb-0">
                                     <i class="fas fa-calendar-alt me-2"></i> Agenda Kegiatan
                                 </h4>
-                                <span class="badge badge-light">{{ count($kegiatan) }} Data</span>
+                               <span class="badge badge-light" id="agendaTotalBadge">0 Data</span>
                             </div>
                         </div>
 
@@ -351,62 +350,11 @@
                                             </tr>
                                         </thead>
 
-                                        <tbody id="agendaTbody">
-                                            @foreach ($kegiatan as $k)
-                                            @php
-                                            $eventDate = \Carbon\Carbon::parse($k->tanggal_kegiatan, 'Asia/Jakarta');
-                                            $dateFormatted = $eventDate->translatedFormat('l, d F Y');
-
-                                            // parsing jam
-                                            $jam = $k->jam
-                                            ? \Carbon\Carbon::parse($k->jam)->format('H.i')
-                                            : null;
-
-                                            if ($eventDate->isToday()) {
-                                            $statusClass = 'agenda-today';
-                                            } elseif ($eventDate->isTomorrow()) {
-                                            $statusClass = 'agenda-tomorrow';
-                                            } else {
-                                            $statusClass = 'agenda-other';
-                                            }
-                                            @endphp
-
-                                            <tr class="{{ $statusClass }}"
-                                                data-search="{{ strtolower($dateFormatted . ' ' . $k->nama_kegiatan . ' ' . $k->disposisi . ' ' . ($k->keterangan ?? '') . ' ' . $k->tempat) }}">
-                                                <td data-label="Tanggal">
-                                                    {{ $dateFormatted }}
-                                                    @if($jam)
-                                                    | {{ $jam }} WIB
-                                                    @endif
-                                                </td>
-                                                <td data-label="Kegiatan">{{ $k->nama_kegiatan }}</td>
-                                                <td data-label="Tempat">{{ $k->tempat }}</td>
-                                                <td data-label="Disposisi">{{ $k->disposisi }}</td>
-                                                <td data-label="Keterangan" class="td-long-text">
-                                                    {{ $k->keterangan }}
-                                                </td>
-                                                <td data-label="Aksi" class="td-aksi">
-                                                    <div class="aksi-group">
-                                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditKegiatan-{{ $k->kegiatan_id }}">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-
-                                                        <form action="{{ route('superadmin.kegiatan.delete', $k->kegiatan_id) }}" method="POST" onsubmit="return confirm('Hapus agenda ini?')" class="m-0">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button class="btn btn-danger btn-sm" type="submit"><i class="fas fa-trash"></i></button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            @endforeach
-
-                                            @if(count($kegiatan) === 0)
-                                            <tr>
-                                                <td colspan="6" class="text-center py-4">Belum ada agenda</td>
-                                            </tr>
-                                            @endif
-                                        </tbody>
+                                        <tbody id="kegiatan-body">
+    <tr>
+        <td colspan="6" class="text-center py-4">Memuat data...</td>
+    </tr>
+</tbody>
                                     </table>
                                 </div>
 
@@ -509,7 +457,7 @@
                                 </div>
 
                                 <!-- NAVIGATION BUTTONS -->
-                                <div class="d-flex justify-content-center gap-2 mb-4">
+                                <div class="d-flex justify-content-center gap-3 mt-3 mb-4">
                                     <button class="btn-nav-admin btn-nav-prev-admin" id="runningtextPrevBtn" type="button">
                                         <i class="fas fa-chevron-left"></i>
                                     </button>
@@ -779,7 +727,7 @@
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
 
-                            <form action="{{ route('superadmin.kegiatan.store') }}" method="POST">
+                            <form id="form-kegiatan"> 
                                 @csrf
 
                                 <div class="modal-body">
@@ -800,8 +748,6 @@
                                                 class="form-control"
                                                 required>
                                         </div>
-
-
 
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold">Nama Kegiatan</label>
@@ -843,9 +789,11 @@
                                     <button class="btn btn-secondary" data-bs-dismiss="modal">
                                         Batal
                                     </button>
-                                    <button class="btn btn-success" type="submit">
-                                        <i class="fas fa-save me-1"></i> Simpan Agenda
-                                    </button>
+<button type="submit" class="btn btn-success">
+    <i class="fas fa-save me-1"></i> Simpan
+</button>
+
+
                                 </div>
                             </form>
                         </div>
@@ -1187,71 +1135,97 @@
                 @endforeach
 
 
-                @foreach ($kegiatan as $k)
-                <div class="modal fade" id="modalEditKegiatan-{{ $k->kegiatan_id }}" data-bs-backdrop="false" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header bg-warning">
-                                <h5 class="modal-title">Edit Agenda</h5>
-                                <button class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
+                <!-- Modal Edit Agenda -->
+<div class="modal fade" id="modalEditAgenda" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
 
-                            <form action="{{ route('superadmin.kegiatan.update', $k->kegiatan_id) }}"
-                                method="POST"
-                                class="agenda-edit-form">
-                                @csrf
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i> Edit Agenda
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-                                <div class="modal-body">
+            <form id="form-edit-kegiatan">
+                @csrf
 
-                                    <label class="form-label">Tanggal:</label>
-                                    <input type="date"
-                                        name="tanggal_kegiatan"
-                                        class="form-control "
-                                        value="{{ \Carbon\Carbon::parse($k->tanggal_kegiatan)->format('Y-m-d') }}">
+                <input type="hidden" id="edit_id" name="kegiatan_id">
 
-                                    <label class="form-label">Jam:</label>
-                                    <input type="time"
-                                        name="jam"
-                                        class="form-control "
-                                        value="{{ $k->jam ? \Carbon\Carbon::parse($k->jam)->format('H:i') : '' }}">
+                <div class="modal-body">
 
-                                    <label class="form-label">Nama Kegiatan:</label>
-                                    <input type="text"
-                                        name="nama_kegiatan"
-                                        class="form-control "
-                                        maxlength="50"
-                                        value="{{ $k->nama_kegiatan }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Tanggal</label>
+                            <input type="date"
+                                id="edit_tanggal"
+                                name="tanggal_kegiatan"
+                                class="form-control"
+                                required>
+                        </div>
 
-                                    <label class="form-label">Tempat:</label>
-                                    <input type="text"
-                                        name="tempat"
-                                        class="form-control "
-                                        maxlength="50"
-                                        value="{{ $k->tempat }}">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Jam</label>
+                            <input type="time"
+                                id="edit_jam"
+                                name="jam"
+                                class="form-control"
+                                required>
+                        </div>
 
-                                    <label class="form-label">Disposisi:</label>
-                                    <input type="text"
-                                        name="disposisi"
-                                        class="form-control "
-                                        maxlength="20"
-                                        value="{{ $k->disposisi }}">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Nama Kegiatan</label>
+                            <input type="text"
+                                id="edit_nama"
+                                name="nama_kegiatan"
+                                class="form-control"
+                                maxlength="50"
+                                required>
+                        </div>
 
-                                    <label class="form-label">Keterangan:</label>
-                                    <textarea name="keterangan"
-                                        class="form-control "
-                                        maxlength="50">{{ $k->keterangan }}</textarea>
-                                </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Tempat</label>
+                            <input type="text"
+                                id="edit_tempat"
+                                name="tempat"
+                                class="form-control"
+                                maxlength="50">
+                        </div>
 
-                                <div class="modal-footer">
-                                    <button class="btn btn-primary w-100" type="submit">
-                                        <i class="fas fa-save me-2"></i> Simpan Perubahan
-                                    </button>
-                                </div>
-                            </form>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Disposisi</label>
+                            <input type="text"
+                                id="edit_disposisi"
+                                name="disposisi"
+                                class="form-control"
+                                maxlength="20">
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Keterangan</label>
+                            <textarea 
+                                id="edit_keterangan"
+                                name="keterangan"
+                                class="form-control"
+                                rows="3"
+                                maxlength="50"></textarea>
                         </div>
                     </div>
+
                 </div>
-                @endforeach
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save me-1"></i> Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
                 @foreach ($runningtext as $r)
                 <div class="modal fade" id="modalEditRunningText-{{ $r->id_text }}" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
@@ -1407,26 +1381,6 @@
 
     <script src="{{ asset('superad.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    {{-- Script untuk membuka modal tambah admin jika ada error --}}
-    @if ($errors->hasBag('addAdmin'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            new bootstrap.Modal(document.getElementById('modalTambahNormalAdmin')).show();
-        });
-    </script>
-    @endif
-
-    {{-- Script untuk membuka modal edit admin jika ada error --}}
-    @foreach ($normaladmin as $n)
-    @if ($errors->hasBag("editAdmin-$n->id_admin"))
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            new bootstrap.Modal(document.getElementById('modalEditNormalAdmin-{{ $n->id_admin }}')).show();
-        });
-    </script>
-    @endif
-    @endforeach
 
 </body>
 
