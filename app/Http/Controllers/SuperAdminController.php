@@ -4,14 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Pimpinan;
 use App\Models\Video;
 use App\Models\Kegiatan;
 use App\Models\RunningText;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\JsonResponse;
 
 class SuperAdminController extends Controller
 {
@@ -177,73 +178,99 @@ class SuperAdminController extends Controller
     }
 
     // ============================================================
-    // CRUD KEGIATAN
+    // CRUD KEGIATAN + AJAX + PAGINATION
     // ============================================================
+
+    public function kegiatanList(Request $request)
+    {
+        $kegiatan = Kegiatan::agendaOrder()->paginate(4);
+
+        $kegiatan->getCollection()->transform(function ($k) {
+            return [
+                'id' => $k->kegiatan_id,
+                'kegiatan_id' => $k->kegiatan_id,
+                'tanggal_kegiatan' => $k->tanggal_kegiatan,
+                'tanggal_label' => Carbon::parse($k->tanggal_kegiatan)->format('d M Y'),
+                'jam' => $k->jam ? Carbon::parse($k->jam)->format('H:i') : null,
+                'nama_kegiatan' => $k->nama_kegiatan,
+                'tempat' => $k->tempat,
+                'disposisi' => $k->disposisi,
+                'keterangan' => $k->keterangan,
+            ];
+        });
+
+        return response()->json($kegiatan);
+    }
+
+
+    public function kegiatanDetail($id)
+    {
+        $k = Kegiatan::where('kegiatan_id', $id)->firstOrFail();
+
+        return response()->json([
+            'kegiatan_id' => $k->kegiatan_id,
+            'tanggal_kegiatan' => $k->tanggal_kegiatan,
+            'jam' => $k->jam ? \Carbon\Carbon::parse($k->jam)->format('H:i') : null,
+            'nama_kegiatan' => $k->nama_kegiatan,
+            'tempat' => $k->tempat,
+            'disposisi' => $k->disposisi,
+            'keterangan' => $k->keterangan,
+        ]);
+    }
+
     public function kegiatanStore(Request $request)
     {
         $request->validate([
             'tanggal_kegiatan' => 'required|date',
-            'jam'            => 'required|date_format:H:i',
-            'nama_kegiatan'    => 'required|string|max:50',
-            'disposisi'        => 'nullable|string|max:20',
-            'tempat'           => 'nullable|string|max:50',
-            'keterangan'       => 'nullable|string|max:50',
+            'jam' => 'required',
+            'nama_kegiatan' => 'required',
+            'tempat' => 'nullable',
+            'disposisi' => 'nullable',
+            'keterangan' => 'nullable',
         ]);
 
         Kegiatan::create([
             'tanggal_kegiatan' => $request->tanggal_kegiatan,
-            'jam'            => $request->jam,
-            'nama_kegiatan'    => $request->nama_kegiatan,
-            'disposisi'        => $request->disposisi,
-            'keterangan'       => $request->keterangan,
-            'tempat'           => $request->tempat,
+            'jam' => $request->jam,
+            'nama_kegiatan' => $request->nama_kegiatan,
+            'tempat' => $request->tempat,
+            'disposisi' => $request->disposisi,
+            'keterangan' => $request->keterangan,
         ]);
 
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil ditambahkan!');
+        return response()->json(['success' => true]);
     }
 
     public function kegiatanUpdate(Request $request, $id)
     {
         $request->validate([
-            'tanggal_kegiatan' => 'nullable|date',
-            'jam'              => 'nullable|date_format:H:i',
-            'nama_kegiatan'    => 'required|string|max:50',
-            'disposisi'        => 'nullable|string|max:20',
-            'tempat'           => 'nullable|string|max:50',
-            'keterangan'       => 'nullable|string|max:50',
+            'tanggal_kegiatan' => 'required|date',
+            'jam' => 'required',
+            'nama_kegiatan' => 'required|string|max:50',
+            'tempat' => 'nullable|string|max:50',
+            'disposisi' => 'nullable|string|max:20',
+            'keterangan' => 'nullable|string|max:50',
         ]);
 
-        // ✅ Field wajib
-        $data = [
+        $kegiatan = Kegiatan::where('kegiatan_id', $id)->firstOrFail();
+
+        $kegiatan->update([
+            'tanggal_kegiatan' => $request->tanggal_kegiatan,
+            'jam' => $request->jam,
             'nama_kegiatan' => $request->nama_kegiatan,
-            'disposisi'     => $request->disposisi,
-            'keterangan'    => $request->keterangan,
-            'tempat'        => $request->tempat,
-        ];
+            'tempat' => $request->tempat,
+            'disposisi' => $request->disposisi,
+            'keterangan' => $request->keterangan,
+        ]);
 
-        // ✅ Update tanggal hanya kalau dikirim
-        if ($request->filled('tanggal_kegiatan')) {
-            $data['tanggal_kegiatan'] = $request->tanggal_kegiatan;
-        }
-
-        // ✅ Update jam hanya kalau dikirim
-        if ($request->filled('jam')) {
-            $data['jam'] = $request->jam;
-        }
-
-        Kegiatan::where('kegiatan_id', $id)->update($data);
-
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil diperbarui!');
+        return response()->json(['success' => true, 'message' => 'Agenda berhasil diperbarui!']);
     }
-
-
 
     public function kegiatanDelete($id)
     {
         Kegiatan::where('kegiatan_id', $id)->delete();
-        return back()->withFragment('agenda')->with('success', 'Kegiatan berhasil dihapus!');
+        return response()->json(['success' => true]);
     }
-
 
     // ============================================================
     // CRUD RUNNING TEXT
@@ -283,33 +310,55 @@ class SuperAdminController extends Controller
     }
 
     // ============================================================
+    // LIST NORMAL ADMIN (AJAX)
+    // ============================================================
+    public function normalAdminList()
+    {
+        $data = User::orderBy('id_admin', 'asc')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
+    }
+
+    // ============================================================
     // NORMAL ADMIN CRUD — PK = id_admin
     // ============================================================
     public function normalAdminStore(Request $request)
     {
-        $request->validateWithBag('addAdmin', [
-            'nama_admin'     => 'required|string|max:50|unique:tb_admin,nama_admin',
-            'bagian'         => 'required|string|max:50',
-            'nip'            => 'required|digits:18|unique:tb_admin,nip',
-            'password_admin' => 'required|string|min:8|max:20|confirmed',
-            'role_admin'     => 'required|in:normaladmin,superadmin',
-        ], [
-            'nama_admin.unique' => 'Nama sudah ditambahkan sebagai admin.',
-            'nip.unique'        => 'NIP sudah ditambahkan sebagai admin.',
-            'password_admin.min' => 'Password minimal 8 karakter.',
-            'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
+        try {
+            $request->validate([
+                'nama_admin'     => 'required|string|max:50|unique:tb_admin,nama_admin',
+                'bagian'         => 'required|string|max:50',
+                'nip'            => 'required|digits:18|unique:tb_admin,nip',
+                'password_admin' => 'required|string|min:8|max:20|confirmed',
+                'role_admin'     => 'required|in:normaladmin,superadmin',
+            ], [
+                'nama_admin.unique' => 'Nama sudah ditambahkan sebagai admin.',
+                'nip.unique'        => 'NIP sudah ditambahkan sebagai admin.',
+                'password_admin.min' => 'Password minimal 8 karakter.',
+                'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
+            ]);
 
-        ]);
+            User::create([
+                'nama_admin'     => $request->nama_admin,
+                'bagian'         => $request->bagian,
+                'nip'            => $request->nip,
+                'role_admin'     => $request->role_admin,
+                'password_admin' => Hash::make($request->password_admin),
+            ]);
 
-        User::create([
-            'nama_admin'     => $request->nama_admin,
-            'bagian'         => $request->bagian,
-            'nip'            => $request->nip,
-            'password_admin' => Hash::make($request->password_admin),
-            'role_admin'     => $request->role_admin,
-        ]);
-
-        return back()->withFragment('normaladmin')->with('success', 'Normal admin berhasil ditambahkan!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Admin berhasil ditambahkan'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     // ============================================================
@@ -317,37 +366,53 @@ class SuperAdminController extends Controller
     // ============================================================
     public function normalAdminUpdate(Request $request, $id)
     {
-        $admin = User::where('id_admin', $id)->firstOrFail();
+        try {
+            $admin = User::where('id_admin', $id)->firstOrFail();
 
-        $request->validateWithBag("editAdmin-$id", [
-            'nama_admin' => 'required|string|max:30|unique:tb_admin,nama_admin,' . $id . ',id_admin',
-            'bagian'     => 'required|string|max:30',
-            'nip'        => 'required|digits:18|unique:tb_admin,nip,' . $id . ',id_admin',
-            'password_admin' => 'nullable|string|min:8|max:20|confirmed',
-        ], [
-            'nama_admin.unique' => 'Nama sudah digunakan oleh admin lain.',
-            'nip.unique'        => 'NIP sudah digunakan oleh admin lain.',
-            'password_admin.min' => 'Password minimal 8 karakter.',
-            'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
-        ]);
+            $request->validate([
+                'nama_admin' => 'required|string|max:30|unique:tb_admin,nama_admin,' . $id . ',id_admin',
+                'bagian'     => 'required|string|max:30',
+                'nip'        => 'required|digits:18|unique:tb_admin,nip,' . $id . ',id_admin',
+                'password_admin' => 'nullable|string|min:8|max:20|confirmed',
+            ], [
+                'nama_admin.unique' => 'Nama sudah digunakan oleh admin lain.',
+                'nip.unique'        => 'NIP sudah digunakan oleh admin lain.',
+                'password_admin.min' => 'Password minimal 8 karakter.',
+                'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
+            ]);
 
+            $admin->nama_admin = $request->nama_admin;
+            $admin->bagian     = $request->bagian;
+            $admin->nip        = $request->nip;
 
-        $admin->nama_admin = $request->nama_admin;
-        $admin->bagian     = $request->bagian;
-        $admin->nip        = $request->nip;
+            if ($request->filled('password_admin')) {
+                $admin->password_admin = Hash::make($request->password_admin);
+            }
 
-        if ($request->filled('password_admin')) {
-            $admin->password_admin = Hash::make($request->password_admin);
+            $admin->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Admin berhasil diperbarui'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
         }
-
-        $admin->save();
-
-        return back()->withFragment('normaladmin')->with('success', 'Normal admin berhasil diperbarui!');
     }
 
+    // ============================================================
+    // DELETE NORMAL ADMIN — PK = id_admin
+    // ============================================================
     public function normalAdminDelete($id)
     {
         User::where('id_admin', $id)->delete();
-        return back()->withFragment('normaladmin')->with('success', 'Normal admin berhasil dihapus!');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin berhasil dihapus'
+        ]);
     }
 }

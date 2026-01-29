@@ -16,6 +16,11 @@ class AuthController extends Controller
 
     public function loginProcess(Request $request)
     {
+        $request->validate([
+            'nip' => 'required',
+            'password' => 'required'
+        ]);
+
         $admin = DB::table('tb_admin')
             ->where('nip', $request->nip)
             ->first();
@@ -28,10 +33,9 @@ class AuthController extends Controller
             return back()->withErrors(['Password salah']);
         }
 
-
         session([
             'admin_id' => $admin->id_admin,
-            'nip'    => $admin->nip,
+            'nip'      => $admin->nip,
             'role'     => $admin->role_admin
         ]);
 

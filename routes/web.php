@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\NormalAdminController;
 use App\Http\Controllers\WelcomeController;
+use App\Services\TokenService;
 
 // ===========================
 // HALAMAN UTAMA
@@ -21,86 +22,109 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ===========================
-// SUPERADMIN — FULL ACCESS
+// SUPERADMIN
 // ===========================
-Route::prefix('superadmin')->group(function () {
+Route::prefix('superadmin')
+    ->middleware(['role:superadmin'])
+    ->group(function () {
 
-    Route::get('/', [SuperAdminController::class, 'index'])
-        ->name('superadmin.dashboard');
+        Route::get('/', [SuperAdminController::class, 'index'])
+            ->name('superadmin.dashboard');
 
-    // PROFIL
-    Route::get('/profil', [SuperAdminController::class, 'profilIndex'])
-        ->name('superadmin.profil');
+        // ================= PROFIL =================
+        Route::get('/profil', [SuperAdminController::class, 'profilIndex'])
+            ->name('superadmin.profil');
 
-    Route::post('/profil/store', [SuperAdminController::class, 'profilStore'])
-        ->name('superadmin.profil.store');
+        Route::post('/profil/store', [SuperAdminController::class, 'profilStore'])
+            ->name('superadmin.profil.store');
 
-    Route::post('/profil/update/{id}', [SuperAdminController::class, 'profilUpdate'])
-        ->name('superadmin.profil.update');
+        Route::post('/profil/update/{id}', [SuperAdminController::class, 'profilUpdate'])
+            ->name('superadmin.profil.update');
 
-    Route::delete('/profil/delete/{id}', [SuperAdminController::class, 'profilDelete'])
-        ->name('superadmin.profil.delete');
+        Route::delete('/profil/delete/{id}', [SuperAdminController::class, 'profilDelete'])
+            ->name('superadmin.profil.delete');
 
-    // VIDEO
-    Route::post('/video/store', [SuperAdminController::class, 'videoStore'])
-        ->name('superadmin.video.store');
+        // ================= VIDEO =================
+        Route::post('/video/store', [SuperAdminController::class, 'videoStore'])
+            ->name('superadmin.video.store');
 
-    Route::post('/video/update/{id}', [SuperAdminController::class, 'videoUpdate'])
-        ->name('superadmin.video.update');
+        Route::post('/video/update/{id}', [SuperAdminController::class, 'videoUpdate'])
+            ->name('superadmin.video.update');
 
-    Route::delete('/video/delete/{id}', [SuperAdminController::class, 'videoDelete'])
-        ->name('superadmin.video.delete');
+        Route::delete('/video/delete/{id}', [SuperAdminController::class, 'videoDelete'])
+            ->name('superadmin.video.delete');
 
-    // KEGIATAN
-    Route::post('/kegiatan/store', [SuperAdminController::class, 'kegiatanStore'])
-        ->name('superadmin.kegiatan.store');
+        // ================= KEGIATAN SUPERADMIN =================
 
-    Route::post('/kegiatan/update/{id}', [SuperAdminController::class, 'kegiatanUpdate'])
-        ->name('superadmin.kegiatan.update');
+        // LIST + PAGINATION
+        Route::get('/kegiatan/list', [SuperAdminController::class, 'kegiatanList']);
 
-    Route::delete('/kegiatan/delete/{id}', [SuperAdminController::class, 'kegiatanDelete'])
-        ->name('superadmin.kegiatan.delete');
+        // DETAIL
+        Route::get('/kegiatan/{id}', [SuperAdminController::class, 'kegiatanDetail']);
 
-    // RUNNING TEXT
-    Route::post('/superadmin/runningtext/store', [SuperAdminController::class, 'runningtextStore'])
-        ->name('superadmin.runningtext.store');
-    Route::post('/superadmin/runningtext/update/{id}', [SuperAdminController::class, 'runningtextUpdate'])
-        ->name('superadmin.runningtext.update');
-    Route::delete('/superadmin/runningtext/delete/{id}', [SuperAdminController::class, 'runningtextDelete'])
-        ->name('superadmin.runningtext.delete');
+        // STORE
+        Route::post('/kegiatan/store', [SuperAdminController::class, 'kegiatanStore']);
 
-    // NORMAL ADMIN MANAGEMENT
-    Route::get('/normaladmin', [SuperAdminController::class, 'normalAdminIndex'])
-        ->name('superadmin.normaladmin');
+        // UPDATE
+        Route::post('/kegiatan/{id}', [SuperAdminController::class, 'kegiatanUpdate']);
 
-    Route::post('/normaladmin/store', [SuperAdminController::class, 'normalAdminStore'])
-        ->name('superadmin.normaladmin.store');
+        // DELETE
+        Route::delete('/kegiatan/{id}', [SuperAdminController::class, 'kegiatanDelete']);
 
-    Route::post('/normaladmin/update/{id}', [SuperAdminController::class, 'normalAdminUpdate'])
-        ->name('superadmin.normaladmin.update');
+        // ================= RUNNING TEXT =================
+        Route::post('/runningtext/store', [SuperAdminController::class, 'runningtextStore'])
+            ->name('superadmin.runningtext.store');
 
-    Route::delete('/normaladmin/delete/{id}', [SuperAdminController::class, 'normalAdminDelete'])
-        ->name('superadmin.normaladmin.delete');
-});
+        Route::post('/runningtext/update/{id}', [SuperAdminController::class, 'runningtextUpdate'])
+            ->name('superadmin.runningtext.update');
+
+        Route::delete('/runningtext/delete/{id}', [SuperAdminController::class, 'runningtextDelete'])
+            ->name('superadmin.runningtext.delete');
+
+        // ================= KELOLA ADMIN =================
+        Route::get('/normaladmin', [SuperAdminController::class, 'normalAdminIndex'])
+            ->name('superadmin.normaladmin');
+
+        Route::get('/normaladmin/list', [SuperAdminController::class, 'normalAdminList']);
+
+        Route::post('/normaladmin/store', [SuperAdminController::class, 'normalAdminStore'])
+            ->name('superadmin.normaladmin.store');
+
+        Route::post('/normaladmin/update/{id}', [SuperAdminController::class, 'normalAdminUpdate'])
+            ->name('superadmin.normaladmin.update');
+
+        Route::post('/normaladmin/delete/{id}', [SuperAdminController::class, 'normalAdminDelete'])
+            ->name('superadmin.normaladmin.delete');
+    });
 
 // ===========================
 // NORMAL ADMIN
 // ===========================
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')
+    ->middleware(['role:normaladmin'])
+    ->group(function () {
 
-    // DASHBOARD NORMAL ADMIN
-    Route::get('/', [NormalAdminController::class, 'index'])
-        ->name('admin.dashboard');
+        Route::get('/', [NormalAdminController::class, 'index'])
+            ->name('admin.dashboard');
 
-    // SIMPAN AGENDA
-    Route::post('/kegiatan/store', [NormalAdminController::class, 'kegiatanStore'])
-        ->name('admin.kegiatan.store');
+        // ================= KEGIATAN AJAX ROUTES =================
 
-    // UPDATE AGENDA
-    Route::post('/kegiatan/update/{id}', [NormalAdminController::class, 'kegiatanUpdate'])
-        ->name('admin.kegiatan.update');
+        // LIST + PAGINATION
+        Route::get('/kegiatan/list', [NormalAdminController::class, 'kegiatanList']);
 
-    // DELETE AGENDA
-    Route::delete('/kegiatan/delete/{id}', [NormalAdminController::class, 'kegiatanDelete'])
-        ->name('admin.kegiatan.delete');
+        // DETAIL
+        Route::get('/kegiatan/{id}', [NormalAdminController::class, 'kegiatanDetail']);
+
+        // STORE
+        Route::post('/kegiatan/store', [NormalAdminController::class, 'kegiatanStore']);
+
+        // UPDATE
+        Route::post('/kegiatan/{id}', [NormalAdminController::class, 'kegiatanUpdate']);
+
+        // DELETE
+        Route::delete('/kegiatan/{id}', [NormalAdminController::class, 'kegiatanDelete']);
+    });
+
+Route::get('/phpinfo', function () {
+    phpinfo();
 });
