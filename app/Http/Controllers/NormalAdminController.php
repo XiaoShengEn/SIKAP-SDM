@@ -23,37 +23,37 @@ class NormalAdminController extends Controller
     // ===============================
     // AJAX LIST dengan PAGINATION & SORTING
     // ===============================
-public function kegiatanList(Request $request)
-{
-    $kegiatan = Kegiatan::agendaOrder()->paginate(4);
+    public function kegiatanList(Request $request)
+    {
+        $kegiatan = Kegiatan::agendaOrder()->paginate(4);
 
-    $kegiatan->getCollection()->transform(function ($k) {
-        $date = Carbon::parse($k->tanggal_kegiatan);
+        $kegiatan->getCollection()->transform(function ($k) {
+            $date = Carbon::parse($k->tanggal_kegiatan);
 
-        if ($date->isToday()) {
-            $status = 'today';
-        } elseif ($date->isTomorrow()) {
-            $status = 'tomorrow';
-        } else {
-            $status = 'other';
-        }
+            if ($date->isToday()) {
+                $status = 'today';
+            } elseif ($date->isTomorrow()) {
+                $status = 'tomorrow';
+            } else {
+                $status = 'other';
+            }
 
-        return [
-            'id' => $k->kegiatan_id,
-            'kegiatan_id' => $k->kegiatan_id,
-            'tanggal_kegiatan' => $k->tanggal_kegiatan,
-            'tanggal_label' => $date->translatedFormat('l, d F Y'),
-            'jam' => $k->jam ? Carbon::parse($k->jam)->format('H:i') : null,
-            'nama_kegiatan' => $k->nama_kegiatan,
-            'tempat' => $k->tempat,
-            'disposisi' => $k->disposisi,
-            'keterangan' => $k->keterangan,
-            'status' => $status,
-        ];
-    });
+            return [
+                'id' => $k->kegiatan_id,
+                'kegiatan_id' => $k->kegiatan_id,
+                'tanggal_kegiatan' => $k->tanggal_kegiatan,
+                'tanggal_label' => $date->translatedFormat('l, d F Y'),
+                'jam' => $k->jam ? Carbon::parse($k->jam)->format('H:i') : null,
+                'nama_kegiatan' => $k->nama_kegiatan,
+                'tempat' => $k->tempat,
+                'disposisi' => $k->disposisi,
+                'keterangan' => $k->keterangan,
+                'status' => $status,
+            ];
+        });
 
-    return response()->json($kegiatan);
-}
+        return response()->json($kegiatan);
+    }
 
     // ===============================
     // DETAIL KEGIATAN

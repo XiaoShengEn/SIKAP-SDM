@@ -16,7 +16,7 @@ class KemendagriPegawaiService
                 'auth' => $token, // ⬅️ INI SESUAI DOKUMENTASI
             ])
             ->post('https://apimanager-ropeg.kemendagri.go.id/api/get_tgl_lahir_pegawai', [
-                'hari_ini' => 1, // optional tapi dianjurkan
+                'hari_ini' => 1, 
             ]);
 
         if (! $response->successful()) {

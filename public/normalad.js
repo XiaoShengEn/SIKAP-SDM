@@ -7,8 +7,13 @@
    - Auto logout
 ================================= */
 
+<<<<<<< HEAD
 document.addEventListener("DOMContentLoaded", function() {
     
+=======
+document.addEventListener("DOMContentLoaded", function () {
+
+>>>>>>> origin/main
     const tbody = document.getElementById("agendaTbody");
     const searchInput = document.getElementById("agendaSearch");
     const clearSearchBtn = document.getElementById("agendaClearSearch");
@@ -75,6 +80,7 @@ document.addEventListener("DOMContentLoaded", function() {
             data.forEach(k => {
                 const row = document.createElement("tr");
                 row.className = getRowClass(k.status);
+<<<<<<< HEAD
                 
                 // Tambahkan class warna baris penuh
                 row.className = getRowClass(k.status);
@@ -83,6 +89,16 @@ document.addEventListener("DOMContentLoaded", function() {
                     `${k.tanggal_label} ${k.nama_kegiatan} ${k.tempat || ''} ${k.disposisi || ''} ${k.keterangan || ''}`.toLowerCase()
                 );
                 
+=======
+
+                // Tambahkan class warna baris penuh
+                row.className = getRowClass(k.status);
+
+                row.setAttribute("data-search",
+                    `${k.tanggal_label} ${k.nama_kegiatan} ${k.tempat || ''} ${k.disposisi || ''} ${k.keterangan || ''}`.toLowerCase()
+                );
+
+>>>>>>> origin/main
                 row.innerHTML = `
                     <td data-label="Tanggal">
                         <div>${k.tanggal_label}</div>
@@ -134,7 +150,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     /* ===== EVENT: SEARCH INPUT ===== */
     if (searchInput) {
+<<<<<<< HEAD
         searchInput.addEventListener("input", function() {
+=======
+        searchInput.addEventListener("input", function () {
+>>>>>>> origin/main
             searchTerm = this.value;
             performSearch();
         });
@@ -142,7 +162,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     /* ===== EVENT: CLEAR SEARCH ===== */
     if (clearSearchBtn) {
+<<<<<<< HEAD
         clearSearchBtn.addEventListener("click", function() {
+=======
+        clearSearchBtn.addEventListener("click", function () {
+>>>>>>> origin/main
             searchInput.value = "";
             searchTerm = "";
             performSearch();
@@ -166,7 +190,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     /* ===== SUBMIT TAMBAH AGENDA ===== */
     if (formTambah) {
+<<<<<<< HEAD
         formTambah.addEventListener("submit", async function(e) {
+=======
+        formTambah.addEventListener("submit", async function (e) {
+>>>>>>> origin/main
             e.preventDefault();
 
             const formData = new FormData(this);
@@ -207,7 +235,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
     /* ===== CLICK EDIT & DELETE BUTTONS ===== */
     if (tbody) {
+<<<<<<< HEAD
         tbody.addEventListener("click", async function(e) {
+=======
+        tbody.addEventListener("click", async function (e) {
+>>>>>>> origin/main
 
             // HANDLE EDIT
             const editBtn = e.target.closest(".edit-btn");
@@ -243,7 +275,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const deleteBtn = e.target.closest(".delete-btn");
             if (deleteBtn) {
                 const id = deleteBtn.dataset.id;
-                
                 if (!confirm("Yakin ingin menghapus agenda ini?")) return;
 
                 try {
@@ -273,7 +304,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     /* ===== SUBMIT EDIT AGENDA ===== */
     if (formEdit) {
-        formEdit.addEventListener("submit", async function(e) {
+        formEdit.addEventListener("submit", async function (e) {
             e.preventDefault();
 
             const id = edit_id.value;
@@ -354,6 +385,7 @@ document.addEventListener("DOMContentLoaded", function() {
         update();
     });
 
+<<<<<<< HEAD
     /* ===== AUTO LOGOUT ===== */
     const AUTO_LOGOUT_INTERVAL = 1 * 60 * 1000;
     let autoLogoutTimer;
@@ -364,6 +396,27 @@ document.addEventListener("DOMContentLoaded", function() {
 
         clearTimeout(autoLogoutTimer);
         autoLogoutTimer = setTimeout(() => form.submit(), AUTO_LOGOUT_INTERVAL);
+=======
+    /* =================================
+     AUTO LOGOUT BERDASARKAN KETIDAKAKTIFAN USER (FIXED)
+    ================================= */
+    const AUTO_LOGOUT_INTERVAL = 5 * 60 * 1000;
+    let autoLogoutTimer;
+
+    function resetAutoLogoutTimer() {
+        clearTimeout(autoLogoutTimer);
+
+        autoLogoutTimer = setTimeout(() => {
+            fetch("/logout", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                }
+            }).finally(() => {
+                window.location.href = "/login";
+            });
+        }, AUTO_LOGOUT_INTERVAL);
+>>>>>>> origin/main
     }
 
     ["mousemove", "keydown", "click", "scroll", "touchstart"]

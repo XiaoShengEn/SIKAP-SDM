@@ -38,7 +38,6 @@ class FetchBirthdayPegawai extends Command
 
             $this->info('Berhasil update: ' . count($response['data']) . ' data');
             return Command::SUCCESS;
-
         } catch (\Throwable $e) {
             $this->error('Gagal fetch data: ' . $e->getMessage());
             return Command::FAILURE;

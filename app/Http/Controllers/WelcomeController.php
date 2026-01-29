@@ -36,13 +36,12 @@ class WelcomeController extends Controller
         //  ultah dari API 
         $ultahText = DB::table('birthday_today')
             ->pluck('nama')
-            ->map(fn ($n) => "🎉 Selamat Berulang Tahun : $n 🎉")
+            ->map(fn($n) => "🎉 Selamat Berulang Tahun : $n 🎉")
             ->toArray();
 
         if (count($ultahText) === 0) {
             $ultahText = ['-'];
         }
-
 
         // gabungkan dengan running text lain
         $runningtext = array_merge($ultahText, $runningtext);

@@ -37,7 +37,7 @@ class Kegiatan extends Model
                 ELSE 3
             END
         ", [$today, $tomorrow, $tomorrow])
-        ->orderBy('tanggal_kegiatan', 'asc')
-        ->orderBy('jam', 'asc');
+            ->orderBy('tanggal_kegiatan', 'asc')
+            ->orderBy('jam', 'asc');
     }
 }
