@@ -13,6 +13,8 @@ use App\Models\RunningText;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
+use App\Events\AgendaUpdated;
+
 
 class SuperAdminController extends Controller
 {
@@ -181,26 +183,12 @@ class SuperAdminController extends Controller
     // CRUD KEGIATAN + AJAX + PAGINATION
     // ============================================================
 
-    public function kegiatanList(Request $request)
-    {
-        $kegiatan = Kegiatan::agendaOrder()->paginate(4);
+public function kegiatanList(Request $request)
+{
+    return app(\App\Http\Controllers\NormalAdminController::class)
+        ->kegiatanList($request);
+}
 
-        $kegiatan->getCollection()->transform(function ($k) {
-            return [
-                'id' => $k->kegiatan_id,
-                'kegiatan_id' => $k->kegiatan_id,
-                'tanggal_kegiatan' => $k->tanggal_kegiatan,
-                'tanggal_label' => Carbon::parse($k->tanggal_kegiatan)->format('d M Y'),
-                'jam' => $k->jam ? Carbon::parse($k->jam)->format('H:i') : null,
-                'nama_kegiatan' => $k->nama_kegiatan,
-                'tempat' => $k->tempat,
-                'disposisi' => $k->disposisi,
-                'keterangan' => $k->keterangan,
-            ];
-        });
-
-        return response()->json($kegiatan);
-    }
 
 
     public function kegiatanDetail($id)
@@ -218,38 +206,34 @@ class SuperAdminController extends Controller
         ]);
     }
 
-    public function kegiatanStore(Request $request)
-    {
-        $request->validate([
-            'tanggal_kegiatan' => 'required|date',
-            'jam' => 'required',
-            'nama_kegiatan' => 'required',
-            'tempat' => 'nullable',
-            'disposisi' => 'nullable',
-            'keterangan' => 'nullable',
-        ]);
+ public function kegiatanStore(Request $request)
+{
+    $request->validate([
+        'tanggal_kegiatan' => 'required|date',
+        'jam' => 'required',
+        'nama_kegiatan' => 'required|string|max:255',
+        'tempat' => 'nullable|string|max:255',
+        'disposisi' => 'nullable|string|max:255',
+        'keterangan' => 'nullable|string',
+    ]);
 
-        Kegiatan::create([
-            'tanggal_kegiatan' => $request->tanggal_kegiatan,
-            'jam' => $request->jam,
-            'nama_kegiatan' => $request->nama_kegiatan,
-            'tempat' => $request->tempat,
-            'disposisi' => $request->disposisi,
-            'keterangan' => $request->keterangan,
-        ]);
+    $agenda = Kegiatan::create($request->all());
 
-        return response()->json(['success' => true]);
-    }
+    event(new AgendaUpdated($agenda));
+
+    return response()->json(['success' => true]);
+}
+
 
     public function kegiatanUpdate(Request $request, $id)
     {
         $request->validate([
             'tanggal_kegiatan' => 'required|date',
             'jam' => 'required',
-            'nama_kegiatan' => 'required|string|max:50',
-            'tempat' => 'nullable|string|max:50',
-            'disposisi' => 'nullable|string|max:20',
-            'keterangan' => 'nullable|string|max:50',
+            'nama_kegiatan' => 'required|string|max:255',
+            'tempat' => 'required|string|max:255',
+            'disposisi' => 'nullable|string|max:255',
+            'keterangan' => 'nullable|string',
         ]);
 
         $kegiatan = Kegiatan::where('kegiatan_id', $id)->firstOrFail();
@@ -263,14 +247,29 @@ class SuperAdminController extends Controller
             'keterangan' => $request->keterangan,
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Agenda berhasil diperbarui!']);
+        // 🔴 BROADCAST REALTIME
+        event(new AgendaUpdated($kegiatan));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Agenda berhasil diupdate'
+        ]);
+    }
+        public function kegiatanDelete($id)
+    {
+        $agenda = Kegiatan::where('kegiatan_id', $id)->firstOrFail();
+
+        $agenda->delete();
+
+        // 🔴 BROADCAST REALTIME
+        event(new AgendaUpdated($agenda));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Agenda berhasil dihapus'
+        ]);
     }
 
-    public function kegiatanDelete($id)
-    {
-        Kegiatan::where('kegiatan_id', $id)->delete();
-        return response()->json(['success' => true]);
-    }
 
     // ============================================================
     // CRUD RUNNING TEXT

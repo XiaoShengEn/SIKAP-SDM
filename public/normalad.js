@@ -1,3 +1,31 @@
+let tbody;
+
+async function loadKegiatan(page = 1) {
+    if (!tbody) return;
+
+    const res = await fetch(`/admin/kegiatan/list?page=${page}`);
+    const result = await res.json();
+
+    tbody.innerHTML = "";
+
+    result.data.forEach(k => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>
+                <div>${k.tanggal_label}</div>
+                ${k.jam ? `<div class="small">${k.jam} WIB</div>` : ""}
+            </td>
+            <td>${k.nama_kegiatan}</td>
+            <td>${k.tempat || "-"}</td>
+            <td>${k.disposisi || "-"}</td>
+            <td>${k.keterangan || "-"}</td>
+            <td></td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
 /* =================================
    NORMAL ADMIN JS - REAL-TIME AJAX
    - Real-time data loading
@@ -7,14 +35,10 @@
    - Auto logout
 ================================= */
 
-<<<<<<< HEAD
-document.addEventListener("DOMContentLoaded", function() {
-    
-=======
 document.addEventListener("DOMContentLoaded", function () {
 
->>>>>>> origin/main
-    const tbody = document.getElementById("agendaTbody");
+    tbody = document.getElementById("agendaTbody");
+    loadKegiatan(1);
     const searchInput = document.getElementById("agendaSearch");
     const clearSearchBtn = document.getElementById("agendaClearSearch");
     const prevBtn = document.getElementById("agendaPrevBtn");
@@ -80,16 +104,6 @@ document.addEventListener("DOMContentLoaded", function () {
             data.forEach(k => {
                 const row = document.createElement("tr");
                 row.className = getRowClass(k.status);
-<<<<<<< HEAD
-                
-                // Tambahkan class warna baris penuh
-                row.className = getRowClass(k.status);
-                
-                row.setAttribute("data-search", 
-                    `${k.tanggal_label} ${k.nama_kegiatan} ${k.tempat || ''} ${k.disposisi || ''} ${k.keterangan || ''}`.toLowerCase()
-                );
-                
-=======
 
                 // Tambahkan class warna baris penuh
                 row.className = getRowClass(k.status);
@@ -98,7 +112,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     `${k.tanggal_label} ${k.nama_kegiatan} ${k.tempat || ''} ${k.disposisi || ''} ${k.keterangan || ''}`.toLowerCase()
                 );
 
->>>>>>> origin/main
                 row.innerHTML = `
                     <td data-label="Tanggal">
                         <div>${k.tanggal_label}</div>
@@ -126,10 +139,19 @@ document.addEventListener("DOMContentLoaded", function () {
             if (prevBtn) prevBtn.disabled = result.current_page <= 1;
             if (nextBtn) nextBtn.disabled = result.current_page >= result.last_page;
 
-            // Apply search filter if active
-            if (searchTerm) {
-                performSearch();
-            }
+// Apply search filter if active
+if (searchTerm) {
+    performSearch();
+}
+
+// RESET STATE VISUAL LAMA AGAR REALTIME TERLIHAT
+searchTerm = "";
+currentPage = 1;
+
+tbody.querySelectorAll("tr").forEach(r => {
+    r.style.display = "";
+});
+            
 
         } catch (e) {
             console.error("Error loading agenda:", e);
@@ -150,11 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* ===== EVENT: SEARCH INPUT ===== */
     if (searchInput) {
-<<<<<<< HEAD
-        searchInput.addEventListener("input", function() {
-=======
         searchInput.addEventListener("input", function () {
->>>>>>> origin/main
             searchTerm = this.value;
             performSearch();
         });
@@ -162,11 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* ===== EVENT: CLEAR SEARCH ===== */
     if (clearSearchBtn) {
-<<<<<<< HEAD
-        clearSearchBtn.addEventListener("click", function() {
-=======
         clearSearchBtn.addEventListener("click", function () {
->>>>>>> origin/main
             searchInput.value = "";
             searchTerm = "";
             performSearch();
@@ -190,11 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* ===== SUBMIT TAMBAH AGENDA ===== */
     if (formTambah) {
-<<<<<<< HEAD
-        formTambah.addEventListener("submit", async function(e) {
-=======
         formTambah.addEventListener("submit", async function (e) {
->>>>>>> origin/main
             e.preventDefault();
 
             const formData = new FormData(this);
@@ -235,11 +245,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /* ===== CLICK EDIT & DELETE BUTTONS ===== */
     if (tbody) {
-<<<<<<< HEAD
-        tbody.addEventListener("click", async function(e) {
-=======
         tbody.addEventListener("click", async function (e) {
->>>>>>> origin/main
 
             // HANDLE EDIT
             const editBtn = e.target.closest(".edit-btn");
@@ -385,18 +391,6 @@ document.addEventListener("DOMContentLoaded", function () {
         update();
     });
 
-<<<<<<< HEAD
-    /* ===== AUTO LOGOUT ===== */
-    const AUTO_LOGOUT_INTERVAL = 1 * 60 * 1000;
-    let autoLogoutTimer;
-
-    function resetAutoLogoutTimer() {
-        const form = document.getElementById("auto-logout-form");
-        if (!form) return;
-
-        clearTimeout(autoLogoutTimer);
-        autoLogoutTimer = setTimeout(() => form.submit(), AUTO_LOGOUT_INTERVAL);
-=======
     /* =================================
      AUTO LOGOUT BERDASARKAN KETIDAKAKTIFAN USER (FIXED)
     ================================= */
@@ -416,7 +410,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.href = "/login";
             });
         }, AUTO_LOGOUT_INTERVAL);
->>>>>>> origin/main
     }
 
     ["mousemove", "keydown", "click", "scroll", "touchstart"]
@@ -427,4 +420,24 @@ document.addEventListener("DOMContentLoaded", function () {
     /* ===== INITIALIZE ===== */
     loadKegiatan(1);
 
+});
+
+/* =================================
+REALTIME AGENDA LISTENER (REVERB)
+================================= */
+document.addEventListener("DOMContentLoaded", function () {
+
+    if (!window.Echo) {
+        console.warn("Echo belum tersedia");
+        return;
+    }
+
+    window.Echo.channel("agenda-channel")
+        .listen(".agenda.updated", (e) => {
+            console.log("Realtime agenda update:", e);
+
+            if (typeof loadKegiatan === "function") {
+                loadKegiatan(1);
+            }
+        });
 });

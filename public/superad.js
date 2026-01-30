@@ -627,10 +627,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     `${k.tanggal_label} ${k.nama_kegiatan} ${k.tempat || ''} ${k.disposisi || ''} ${k.keterangan || ''}`.toLowerCase()
                 );
 
+                const jamClean = k.jam ? k.jam.substring(0, 5) : "";
+
                 row.innerHTML = `
                     <td>
-                        <div>${k.tanggal_label}</div>
-                        ${k.jam ? `<div class="small">${k.jam} WIB</div>` : ""}
+                        <div>${k.tanggal_label ?? k.tanggal_kegiatan}</div>
+                        ${jamClean ? `<div class="small">${jamClean} WIB</div>` : ""}
                     </td>
                     <td>${k.nama_kegiatan}</td>
                     <td>${k.tempat || "-"}</td>
@@ -654,10 +656,18 @@ document.addEventListener("DOMContentLoaded", function () {
             if (prevBtn) prevBtn.disabled = result.current_page <= 1;
             if (nextBtn) nextBtn.disabled = result.current_page >= result.last_page;
 
-            // Apply search filter if active
-            if (searchTerm) {
-                performSearch();
-            }
+// Apply search filter if active
+if (searchTerm) {
+    performSearch();
+}
+
+// RESET STATE VISUAL LAMA AGAR REALTIME TERLIHAT
+searchTerm = "";
+currentPage = 1;
+
+tbody.querySelectorAll("tr").forEach(r => {
+    r.style.display = "";
+});
 
         } catch (e) {
             console.error("Error loading agenda:", e);
@@ -933,331 +943,6 @@ document.addEventListener("DOMContentLoaded", function () {
             el.classList.remove("is-invalid");
         });
 
-<<<<<<< HEAD
-        resetAutoLogoutTimer();
-/* =================================
-   AGENDA KEGIATAN - AJAX CRUD
-   - Load data dengan pagination
-   - Tambah agenda (AJAX)
-   - Edit agenda (AJAX)
-   - Delete agenda (AJAX)
-   - Search & Filter
-================================= */
-
-document.addEventListener("DOMContentLoaded", function() {
-    
-    const tbody = document.getElementById("kegiatan-body");
-    const searchInput = document.getElementById("agendaSearch");
-    const clearSearchBtn = document.getElementById("agendaClearSearch");
-    const prevBtn = document.getElementById("agendaPrevBtn");
-    const nextBtn = document.getElementById("agendaNextBtn");
-    const totalBadge = document.getElementById("agendaTotalBadge");
-
-    // Form elements
-    const formTambah = document.getElementById("form-kegiatan");
-    const formEdit = document.getElementById("form-edit-kegiatan");
-    const modalEditAgenda = document.getElementById("modalEditAgenda");
-    const modalTambahAgenda = document.getElementById("modalTambahAgenda");
-
-    // Edit form inputs
-    const edit_id = document.getElementById("edit_id");
-    const edit_tanggal = document.getElementById("edit_tanggal");
-    const edit_jam = document.getElementById("edit_jam");
-    const edit_nama = document.getElementById("edit_nama");
-    const edit_tempat = document.getElementById("edit_tempat");
-    const edit_disposisi = document.getElementById("edit_disposisi");
-    const edit_keterangan = document.getElementById("edit_keterangan");
-
-    let currentPage = 1;
-    let searchTerm = "";
-
-    /* ===== GET CSRF TOKEN ===== */
-    function getCsrfToken() {
-        return document.querySelector('meta[name="csrf-token"]').content;
-    }
-
-    /* ===== WARNA TANGGAL BERDASARKAN HARI ===== */
-    function getTanggalClass(tanggalStr) {
-        const today = new Date(); 
-        today.setHours(0,0,0,0);
-
-        const target = new Date(tanggalStr); 
-        target.setHours(0,0,0,0);
-
-        const diff = (target - today) / 86400000;
-
-        if (diff === 0) return "agenda-today";
-        if (diff === 1) return "agenda-tomorrow";
-        if (diff >= 2) return "agenda-other";
-        return "";
-    }
-
-    /* ===== LOAD DATA AGENDA ===== */
-    async function loadKegiatan(page = 1) {
-        currentPage = page;
-
-        try {
-            const res = await fetch(`/superadmin/kegiatan/list?page=${page}`);
-            if (!res.ok) throw new Error("HTTP " + res.status);
-
-            const result = await res.json();
-            const data = result.data || [];
-            const total = result.total || 0;
-
-            // Update badge total
-            if (totalBadge) {
-                totalBadge.textContent = `${total} Data`;
-            }
-
-            tbody.innerHTML = "";
-
-            if (!data.length) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Belum ada agenda</td></tr>`;
-                if (prevBtn) prevBtn.disabled = true;
-                if (nextBtn) nextBtn.disabled = true;
-                return;
-            }
-
-            data.forEach(k => {
-                const row = document.createElement("tr");
-                row.className = getTanggalClass(k.tanggal_kegiatan);
-
-                row.setAttribute("data-search", 
-                    `${k.tanggal_label} ${k.nama_kegiatan} ${k.tempat || ''} ${k.disposisi || ''} ${k.keterangan || ''}`.toLowerCase()
-                );
-                
-                row.innerHTML = `
-                    <td>
-                        <div>${k.tanggal_label}</div>
-                        ${k.jam ? `<div class="small">${k.jam} WIB</div>` : ""}
-                    </td>
-                    <td>${k.nama_kegiatan}</td>
-                    <td>${k.tempat || "-"}</td>
-                    <td>${k.disposisi || "-"}</td>
-                    <td>${k.keterangan || "-"}</td>
-                    <td class="td-aksi">
-                        <div class="aksi-group">
-                            <button class="btn btn-sm btn-warning edit-btn" data-id="${k.id}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger delete-btn" data-id="${k.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-
-            // Update navigation buttons
-            if (prevBtn) prevBtn.disabled = result.current_page <= 1;
-            if (nextBtn) nextBtn.disabled = result.current_page >= result.last_page;
-
-            // Apply search filter if active
-            if (searchTerm) {
-                performSearch();
-            }
-
-        } catch (e) {
-            console.error("Error loading agenda:", e);
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Gagal memuat data</td></tr>`;
-        }
-    }
-
-    /* ===== SEARCH FUNCTION ===== */
-    function performSearch() {
-        const term = searchTerm.toLowerCase().trim();
-        const rows = tbody.querySelectorAll("tr[data-search]");
-
-        rows.forEach(row => {
-            const searchData = row.getAttribute("data-search");
-            row.style.display = searchData.includes(term) ? "" : "none";
-        });
-    }
-
-    /* ===== EVENT: SEARCH INPUT ===== */
-    if (searchInput) {
-        searchInput.addEventListener("input", function() {
-            searchTerm = this.value;
-            performSearch();
-        });
-    }
-
-    /* ===== EVENT: CLEAR SEARCH ===== */
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener("click", function() {
-            searchInput.value = "";
-            searchTerm = "";
-            performSearch();
-        });
-    }
-
-    /* ===== EVENT: PAGINATION BUTTONS ===== */
-    if (prevBtn) {
-        prevBtn.addEventListener("click", () => {
-            if (currentPage > 1) {
-                loadKegiatan(currentPage - 1);
-            }
-        });
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
-            loadKegiatan(currentPage + 1);
-        });
-    }
-
-    /* ===== SUBMIT TAMBAH AGENDA ===== */
-    if (formTambah) {
-        formTambah.addEventListener("submit", async function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-
-            try {
-                const res = await fetch("/superadmin/kegiatan/store", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": getCsrfToken()
-                    },
-                    body: formData
-                });
-
-                const result = await res.json();
-
-                if (!res.ok || !result.success) {
-                    throw new Error(result.message || "Gagal menambahkan agenda");
-                }
-
-                // Close modal
-                const modalInstance = bootstrap.Modal.getInstance(modalTambahAgenda);
-                if (modalInstance) modalInstance.hide();
-
-                // Reset form
-                this.reset();
-
-                // Reload data
-                currentPage = 1;
-                loadKegiatan(1);
-
-                // Show success message (optional)
-                alert("Agenda berhasil ditambahkan!");
-
-            } catch (error) {
-                console.error("Error:", error);
-                alert(error.message || "Terjadi kesalahan saat menambahkan agenda");
-            }
-        });
-    }
-
-    /* ===== CLICK EDIT & DELETE BUTTONS ===== */
-    if (tbody) {
-        tbody.addEventListener("click", async function(e) {
-
-            // HANDLE EDIT
-            const editBtn = e.target.closest(".edit-btn");
-            if (editBtn) {
-                const id = editBtn.dataset.id;
-
-                try {
-                    const res = await fetch(`/superadmin/kegiatan/${id}`);
-                    if (!res.ok) throw new Error("Gagal mengambil data");
-
-                    const k = await res.json();
-
-                    // Fill form
-                    edit_id.value = k.kegiatan_id;
-                    edit_tanggal.value = k.tanggal_kegiatan;
-                    edit_jam.value = k.jam || "";
-                    edit_nama.value = k.nama_kegiatan;
-                    edit_tempat.value = k.tempat || "";
-                    edit_disposisi.value = k.disposisi || "";
-                    edit_keterangan.value = k.keterangan || "";
-
-                    // Show modal
-                    const modalInstance = new bootstrap.Modal(modalEditAgenda);
-                    modalInstance.show();
-
-                } catch (error) {
-                    console.error("Error:", error);
-                    alert("Gagal mengambil data agenda");
-                }
-            }
-
-            // HANDLE DELETE
-            const deleteBtn = e.target.closest(".delete-btn");
-            if (deleteBtn) {
-                const id = deleteBtn.dataset.id;
-                
-                if (!confirm("Yakin ingin menghapus agenda ini?")) return;
-
-                try {
-                    const res = await fetch(`/superadmin/kegiatan/${id}`, {
-                        method: "DELETE",
-                        headers: {
-                            "X-CSRF-TOKEN": getCsrfToken()
-                        }
-                    });
-
-                    const result = await res.json();
-
-                    if (!res.ok || !result.success) {
-                        throw new Error("Gagal menghapus agenda");
-                    }
-
-                    loadKegiatan(currentPage);
-                    alert("Agenda berhasil dihapus!");
-
-                } catch (error) {
-                    console.error("Error:", error);
-                    alert("Gagal menghapus agenda");
-                }
-            }
-        });
-    }
-
-    /* ===== SUBMIT EDIT AGENDA ===== */
-    if (formEdit) {
-        formEdit.addEventListener("submit", async function(e) {
-            e.preventDefault();
-
-            const id = edit_id.value;
-            const formData = new FormData(this);
-
-            try {
-                const res = await fetch(`/superadmin/kegiatan/${id}`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": getCsrfToken()
-                    },
-                    body: formData
-                });
-
-                const result = await res.json();
-
-                if (!res.ok || !result.success) {
-                    throw new Error(result.message || "Gagal mengupdate agenda");
-                }
-
-                // Close modal
-                const modalInstance = bootstrap.Modal.getInstance(modalEditAgenda);
-                if (modalInstance) modalInstance.hide();
-
-                // Reload data
-                loadKegiatan(currentPage);
-
-                alert("Agenda berhasil diperbarui!");
-
-            } catch (error) {
-                console.error("Error:", error);
-                alert(error.message || "Gagal mengupdate agenda");
-            }
-        });
-    }
-
-    /* ===== INITIALIZE ===== */
-    loadKegiatan(1);
-=======
         form.querySelectorAll(".invalid-feedback").forEach(el => {
             el.remove();
         });
@@ -1413,6 +1098,25 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Error hapus admin");
         }
     });
->>>>>>> origin/main
 
+});
+
+/* =================================
+REALTIME AGENDA LISTENER (REVERB)
+================================= */
+document.addEventListener("DOMContentLoaded", function () {
+
+    if (!window.Echo) {
+        console.warn("Echo belum tersedia");
+        return;
+    }
+
+    window.Echo.channel("agenda-channel")
+        .listen(".agenda.updated", (e) => {
+            console.log("Realtime agenda update:", e);
+
+            if (typeof loadKegiatan === "function") {
+                loadKegiatan(1);
+            }
+        });
 });

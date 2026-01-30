@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Kegiatan;
+use App\Events\AgendaUpdated;
 
 class NormalAdminController extends Controller
 {
@@ -23,37 +24,54 @@ class NormalAdminController extends Controller
     // ===============================
     // AJAX LIST dengan PAGINATION & SORTING
     // ===============================
-    public function kegiatanList(Request $request)
-    {
-        $kegiatan = Kegiatan::agendaOrder()->paginate(4);
+public function kegiatanList(Request $request)
+{
+    $today = \Carbon\Carbon::today();
 
-        $kegiatan->getCollection()->transform(function ($k) {
-            $date = Carbon::parse($k->tanggal_kegiatan);
+    $all = Kegiatan::get()->map(function ($k) use ($today) {
 
-            if ($date->isToday()) {
-                $status = 'today';
-            } elseif ($date->isTomorrow()) {
-                $status = 'tomorrow';
-            } else {
-                $status = 'other';
-            }
+        $tgl = \Carbon\Carbon::parse($k->tanggal_kegiatan);
+        $diff = $today->diffInDays($tgl, false);
 
-            return [
-                'id' => $k->kegiatan_id,
-                'kegiatan_id' => $k->kegiatan_id,
-                'tanggal_kegiatan' => $k->tanggal_kegiatan,
-                'tanggal_label' => $date->translatedFormat('l, d F Y'),
-                'jam' => $k->jam ? Carbon::parse($k->jam)->format('H:i') : null,
-                'nama_kegiatan' => $k->nama_kegiatan,
-                'tempat' => $k->tempat,
-                'disposisi' => $k->disposisi,
-                'keterangan' => $k->keterangan,
-                'status' => $status,
-            ];
-        });
+        if ($diff == 0) {
+            $status = 'today';
+        } elseif ($diff == 1) {
+            $status = 'tomorrow';
+        } else {
+            $status = 'other';
+        }
 
-        return response()->json($kegiatan);
-    }
+        return [
+            'id' => $k->kegiatan_id,
+            'tanggal_kegiatan' => $k->tanggal_kegiatan,
+            'tanggal_label' => $tgl->locale('id')->translatedFormat('l, d F Y'),
+            'jam' => $k->jam ? \Carbon\Carbon::parse($k->jam)->format('H:i') : null,
+            'status' => $status,
+            'nama_kegiatan' => $k->nama_kegiatan,
+            'tempat' => $k->tempat,
+            'disposisi' => $k->disposisi,
+            'keterangan' => $k->keterangan,
+            'diff' => abs($diff),
+            'is_past' => $diff < 0 ? 1 : 0,
+        ];
+    });
+
+    $sorted = $all->sortBy([
+        ['is_past', 'asc'],
+        ['diff', 'asc'],
+    ])->values();
+
+    $perPage = 4;
+    $page = $request->page ?? 1;
+    $items = $sorted->slice(($page - 1) * $perPage, $perPage)->values();
+
+    return response()->json([
+        'data' => $items,
+        'total' => $sorted->count(),
+        'current_page' => (int)$page,
+        'last_page' => ceil($sorted->count() / $perPage),
+    ]);
+}
 
     // ===============================
     // DETAIL KEGIATAN
@@ -81,13 +99,13 @@ class NormalAdminController extends Controller
         $request->validate([
             'tanggal_kegiatan' => 'required|date',
             'jam' => 'required',
-            'nama_kegiatan' => 'required|string|max:50',
-            'tempat' => 'nullable|string|max:50',
-            'disposisi' => 'nullable|string|max:20',
-            'keterangan' => 'nullable|string|max:50',
+            'nama_kegiatan' => 'required|string|max:255',
+            'tempat' => 'required|string|max:255',
+            'disposisi' => 'nullable|string|max:255',
+            'keterangan' => 'nullable|string',
         ]);
 
-        Kegiatan::create([
+        $agenda = Kegiatan::create([
             'tanggal_kegiatan' => $request->tanggal_kegiatan,
             'jam' => $request->jam,
             'nama_kegiatan' => $request->nama_kegiatan,
@@ -96,21 +114,27 @@ class NormalAdminController extends Controller
             'keterangan' => $request->keterangan,
         ]);
 
-        return response()->json(['success' => true]);
+        // 🔴 BROADCAST REALTIME
+        event(new AgendaUpdated($agenda));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Agenda berhasil ditambahkan'
+        ]);
     }
 
     // ===============================
     // UPDATE KEGIATAN
     // ===============================
-    public function kegiatanUpdate(Request $request, $id)
+     public function kegiatanUpdate(Request $request, $id)
     {
         $request->validate([
             'tanggal_kegiatan' => 'required|date',
             'jam' => 'required',
-            'nama_kegiatan' => 'required|string|max:50',
-            'tempat' => 'nullable|string|max:50',
-            'disposisi' => 'nullable|string|max:20',
-            'keterangan' => 'nullable|string|max:50',
+            'nama_kegiatan' => 'required|string|max:255',
+            'tempat' => 'required|string|max:255',
+            'disposisi' => 'nullable|string|max:255',
+            'keterangan' => 'nullable|string',
         ]);
 
         $kegiatan = Kegiatan::where('kegiatan_id', $id)->firstOrFail();
@@ -124,7 +148,13 @@ class NormalAdminController extends Controller
             'keterangan' => $request->keterangan,
         ]);
 
-        return response()->json(['success' => true]);
+        // 🔴 BROADCAST REALTIME
+        event(new AgendaUpdated($kegiatan));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Agenda berhasil diupdate'
+        ]);
     }
 
     // ===============================
@@ -132,7 +162,16 @@ class NormalAdminController extends Controller
     // ===============================
     public function kegiatanDelete($id)
     {
-        Kegiatan::where('kegiatan_id', $id)->delete();
-        return response()->json(['success' => true]);
+        $agenda = Kegiatan::where('kegiatan_id', $id)->firstOrFail();
+
+        $agenda->delete();
+
+        // 🔴 BROADCAST REALTIME
+        event(new AgendaUpdated($agenda));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Agenda berhasil dihapus'
+        ]);
     }
 }
