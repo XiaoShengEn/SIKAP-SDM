@@ -1099,7 +1099,7 @@
                                         Tutup
                                     </button>
                                     <button class="btn btn-warning" type="submit">
-                                        <i class="fas fa-save me-1"></i> Update
+                                        <i class="fas fa-save me-1"></i> Simpan
                                     </button>
                                 </div>
 

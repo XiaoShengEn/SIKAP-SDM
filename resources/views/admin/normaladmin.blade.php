@@ -56,10 +56,10 @@
                             </div>
                         </div>
 
-        <div id="agendaTableBody" class="collapse">
-            <div class="card-body">
-                <!-- SEARCH BOX -->
-                <div class="mb-3 d-flex gap-2 align-items-center">
+                        <div id="agendaTableBody" class="collapse">
+                            <div class="card-body">
+                                <!-- SEARCH BOX -->
+                                <div class="mb-3 d-flex gap-2 align-items-center">
 
                                     <!-- SEARCH -->
                                     <div class="input-group">
@@ -334,7 +334,7 @@
                                         Batal
                                     </button>
                                     <button class="btn btn-warning" type="submit">
-                                        <i class="fas fa-save me-1"></i> Update
+                                        <i class="fas fa-save me-1"></i> Simpan
                                     </button>
                                 </div>
                             </form>

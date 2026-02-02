@@ -199,7 +199,6 @@ Fungsi:
 const rowsPerPageMap = {
     profil: 3,
     video: 2,
-    agenda: 4,
     runningtext: 4,
     normaladmin: 4,
 };
@@ -297,7 +296,7 @@ function initTablePagination(tableName) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const tables = ['profil', 'video', 'agenda', 'runningtext', 'normaladmin'];
+    const tables = ['profil', 'video', 'runningtext', 'normaladmin'];
 
     tables.forEach(name => {
         initTablePagination(name);
@@ -569,7 +568,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const edit_disposisi = document.getElementById("edit_disposisi");
     const edit_keterangan = document.getElementById("edit_keterangan");
 
-    let currentPage = 1;
+    let currentPage = Number(sessionStorage.getItem("agenda_page")) || 1;
     let searchTerm = "";
 
     /* ===== GET CSRF TOKEN ===== */
@@ -593,25 +592,12 @@ document.addEventListener("DOMContentLoaded", function () {
         return "";
     }
 
-    function calculateTargetPage(tanggal) {
-    const rowsPerPage = 5; // sama dengan backend
-    const today = new Date(tanggal);
-
-    // ambil semua tanggal dari server (urutan sama dengan paginate)
-    return fetch('/kegiatan/list?page=1')
-        .then(r => r.json())
-        .then(r => {
-            const all = r.total; // total data
-            // karena urutan by tanggal asc
-            // data paling baru (hari ini) pasti di awal
-            // kita pakai logika posisi
-            return 1; // default
-        });
-}
-
     /* ===== LOAD DATA AGENDA ===== */
-    window.loadKegiatanSuperadmin = async function(page = 1) {
+    window.loadKegiatanSuperadmin = async function (page = currentPage) {
+
         window.currentAgendaPage = page;
+        currentPage = page;
+        sessionStorage.setItem("agenda_page", page);
 
         try {
             const res = await fetch(`/kegiatan/list?page=${page}`)
@@ -758,8 +744,7 @@ if (nextBtn) {
                 this.reset();
 
                 // Reload data
-                currentPage = 1;
-                window.loadKegiatanSuperadmin(1);
+                window.loadKegiatanSuperadmin(currentPage);
 
                 // Show success message (optional)
                 alert("Agenda berhasil ditambahkan!");
@@ -879,7 +864,7 @@ if (nextBtn) {
     /* ================================
      INITIALIZE
     ================================ */
-    window.loadKegiatanSuperadmin(1);
+    window.loadKegiatanSuperadmin(currentPage);
     loadNormalAdmin();
 
     /* ================================

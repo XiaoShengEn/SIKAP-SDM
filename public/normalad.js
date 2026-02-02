@@ -47,36 +47,21 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function calculateTargetPage(tanggal) {
-    const rowsPerPage = 5; // sama dengan backend
-    const today = new Date(tanggal);
 
-    // ambil semua tanggal dari server (urutan sama dengan paginate)
-    return fetch('/kegiatan/list?page=1')
-        .then(r => r.json())
-        .then(r => {
-            const all = r.total; // total data
-            // karena urutan by tanggal asc
-            // data paling baru (hari ini) pasti di awal
-            // kita pakai logika posisi
-            return 1; // default
-        });
-}
+    function getTanggalClass(tanggalStr) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-function getTanggalClass(tanggalStr) {
-    const today = new Date();
-    today.setHours(0,0,0,0);
+        const target = new Date(tanggalStr);
+        target.setHours(0, 0, 0, 0);
 
-    const target = new Date(tanggalStr);
-    target.setHours(0,0,0,0);
+        const diff = (target - today) / 86400000;
 
-    const diff = (target - today) / 86400000;
-
-    if (diff === 0) return 'agenda-today';
-    if (diff === 1) return 'agenda-tomorrow';
-    if (diff >= 2) return 'agenda-other';
-    return 'agenda-past';
-}
+        if (diff === 0) return 'agenda-today';
+        if (diff === 1) return 'agenda-tomorrow';
+        if (diff >= 2) return 'agenda-other';
+        return 'agenda-past';
+    }
 
     /* ================= LOAD DATA ================= */
     async function loadKegiatan(page = 1) {
@@ -89,6 +74,7 @@ function getTanggalClass(tanggalStr) {
 
             currentPage = result.current_page || 1;
             lastPage = result.last_page || 1;
+            sessionStorage.setItem("agenda_page_admin", currentPage);
 
             if (totalBadge) {
                 totalBadge.textContent = `${result.total || 0} Data`;
@@ -135,27 +121,18 @@ function getTanggalClass(tanggalStr) {
     }
 
     /* ================= REALTIME REVERB ================= */
-if (window.Echo) {
-    window.Echo.channel('agenda-updates')
-.listen('.AgendaUpdated', async (e) => {
+    if (window.Echo) {
+        window.Echo.channel('agenda-updates')
+            .listen('.AgendaUpdated', async (e) => {
 
-    // Kalau ini hasil CRUD kita sendiri, abaikan
-    if (window.__lastEditedId === e.id) {
-        window.__lastEditedId = null;
-        return;
+                if (window.__lastEditedId === e.id) {
+                    window.__lastEditedId = null;
+                    return;
+                }
+
+                loadKegiatan(currentPage);
+            });
     }
-
-    // Hitung halaman tempat data itu berada
-    const targetPage = await calculateTargetPage(e.tanggal);
-
-    // Hanya pindah halaman kalau data itu memang ada di page 1
-    if (targetPage === 1) {
-        loadKegiatan(1);
-    } else {
-        loadKegiatan(currentPage);
-    }
-});
-}
 
     /* ================= SEARCH ================= */
     if (searchInput) {
@@ -179,85 +156,86 @@ if (window.Echo) {
 
     /* ================= CRUD ================= */
     if (formTambah) {
-formTambah.addEventListener("submit", async function (e) {
-    e.preventDefault();
+        formTambah.addEventListener("submit", async function (e) {
+            e.preventDefault();
 
-    const res = await fetch("/admin/kegiatan/store", {
-        method: "POST",
-        headers: { "X-CSRF-TOKEN": getCsrfToken() },
-        body: new FormData(this)
-    });
+            const res = await fetch("/admin/kegiatan/store", {
+                method: "POST",
+                headers: { "X-CSRF-TOKEN": getCsrfToken() },
+                body: new FormData(this)
+            });
 
-    const result = await res.json();
+            const result = await res.json();
 
-    // ⬇️ TAMBAH INI
-    window.__lastEditedId = result.id;
+            // ⬇️ TAMBAH INI
+            window.__lastEditedId = result.id;
 
-    bootstrap.Modal.getInstance(modalTambahAgenda)?.hide();
-    this.reset();
-    loadKegiatan(1);
-});
+            bootstrap.Modal.getInstance(modalTambahAgenda)?.hide();
+            this.reset();
+            loadKegiatan(currentPage);
+        });
     }
 
     if (formEdit) {
-formEdit.addEventListener("submit", async function (e) {
-    e.preventDefault();
+        formEdit.addEventListener("submit", async function (e) {
+            e.preventDefault();
 
-    const id = edit_id.value;
+            const id = edit_id.value;
 
-    // ⬇️ TAMBAH INI
-    window.__lastEditedId = id;
+            // ⬇️ TAMBAH INI
+            window.__lastEditedId = id;
 
-    await fetch(`/admin/kegiatan/${id}`, {
-        method: "POST",
-        headers: { "X-CSRF-TOKEN": getCsrfToken() },
-        body: new FormData(this)
-    });
+            await fetch(`/admin/kegiatan/${id}`, {
+                method: "POST",
+                headers: { "X-CSRF-TOKEN": getCsrfToken() },
+                body: new FormData(this)
+            });
 
-    bootstrap.Modal.getInstance(modalEditAgenda)?.hide();
-    loadKegiatan(currentPage);
-});
+            bootstrap.Modal.getInstance(modalEditAgenda)?.hide();
+            loadKegiatan(currentPage);
+        });
 
     }
 
     tbody.addEventListener("click", async function (e) {
 
-    const editBtn = e.target.closest(".edit-btn");
-    const deleteBtn = e.target.closest(".delete-btn");
+        const editBtn = e.target.closest(".edit-btn");
+        const deleteBtn = e.target.closest(".delete-btn");
 
-    if (editBtn) {
-        const id = editBtn.dataset.id;
-        const res = await fetch(`/admin/kegiatan/${id}`);
-        const k = await res.json();
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            const res = await fetch(`/admin/kegiatan/${id}`);
+            const k = await res.json();
 
-        edit_id.value = k.kegiatan_id;
-        edit_tanggal.value = k.tanggal_kegiatan;
-        edit_jam.value = k.jam || "";
-        edit_nama.value = k.nama_kegiatan;
-        edit_tempat.value = k.tempat || "";
-        edit_disposisi.value = k.disposisi || "";
-        edit_keterangan.value = k.keterangan || "";
+            edit_id.value = k.kegiatan_id;
+            edit_tanggal.value = k.tanggal_kegiatan;
+            edit_jam.value = k.jam || "";
+            edit_nama.value = k.nama_kegiatan;
+            edit_tempat.value = k.tempat || "";
+            edit_disposisi.value = k.disposisi || "";
+            edit_keterangan.value = k.keterangan || "";
 
-        new bootstrap.Modal(modalEditAgenda).show();
-    }
+            new bootstrap.Modal(modalEditAgenda).show();
+        }
 
-    if (deleteBtn) {
-        const id = deleteBtn.dataset.id;
+        if (deleteBtn) {
+            const id = deleteBtn.dataset.id;
 
-        if (!confirm("Yakin hapus?")) return;
+            if (!confirm("Yakin hapus?")) return;
 
-        await fetch(`/admin/kegiatan/${id}`, {
-            method: "DELETE",
-            headers: { "X-CSRF-TOKEN": getCsrfToken() }
-        });
+            await fetch(`/admin/kegiatan/${id}`, {
+                method: "DELETE",
+                headers: { "X-CSRF-TOKEN": getCsrfToken() }
+            });
 
-        loadKegiatan(currentPage);
-    }
-});
-
+            loadKegiatan(currentPage);
+        }
+    });
 
     /* ================= INIT ================= */
-    loadKegiatan(1);
+    const savedPage = sessionStorage.getItem("agenda_page_admin") || 1;
+    loadKegiatan(savedPage);
+
 });
 
 /* AUTO LOGOUT ADMIN */
