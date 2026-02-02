@@ -10,3 +10,10 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
  */
 
 import './echo';
+
+
+window.Echo.channel('agenda-channel')
+    .listen('.agenda.updated', (e) => {
+        console.log('REALTIME MASUK:', e);
+        window.dispatchEvent(new Event('agenda-updated'));
+    });

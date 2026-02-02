@@ -16,6 +16,9 @@ Route::get('/', [WelcomeController::class, 'index']);
 // ===========================
 // AUTH
 // ===========================
+Route::get('/kegiatan/list', [NormalAdminController::class, 'list']);
+
+
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'loginProcess'])->name('login.process');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -123,8 +126,13 @@ Route::prefix('admin')
 
         // DELETE
         Route::delete('/kegiatan/{id}', [NormalAdminController::class, 'kegiatanDelete']);
-    });
+        });
 
-Route::get('/phpinfo', function () {
-    phpinfo();
+        Route::get('/phpinfo', function () {
+            phpinfo();
+
+        Route::get('/superadmin/kegiatan/table', [SuperAdminController::class, 'kegiatanTable']);
+        Route::get('/superadmin/kegiatan/table', [SuperAdminController::class, 'kegiatanTable']);
+
+        
 });

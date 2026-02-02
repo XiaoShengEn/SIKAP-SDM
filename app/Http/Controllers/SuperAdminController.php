@@ -183,13 +183,6 @@ class SuperAdminController extends Controller
     // CRUD KEGIATAN + AJAX + PAGINATION
     // ============================================================
 
-public function kegiatanList(Request $request)
-{
-    return app(\App\Http\Controllers\NormalAdminController::class)
-        ->kegiatanList($request);
-}
-
-
 
     public function kegiatanDetail($id)
     {
@@ -246,6 +239,7 @@ public function kegiatanList(Request $request)
             'disposisi' => $request->disposisi,
             'keterangan' => $request->keterangan,
         ]);
+        
 
         // 🔴 BROADCAST REALTIME
         event(new AgendaUpdated($kegiatan));
@@ -255,6 +249,51 @@ public function kegiatanList(Request $request)
             'message' => 'Agenda berhasil diupdate'
         ]);
     }
+
+public function kegiatanTable()
+{
+    $data = Kegiatan::orderBy('tanggal_kegiatan','asc')->get();
+
+    $html = '';
+
+    foreach ($data as $k) {
+        $tanggal = \Carbon\Carbon::parse($k->tanggal_kegiatan);
+        $today = now()->startOfDay();
+        $diff = $tanggal->diffInDays($today, false);
+
+        $class = '';
+        if ($diff === 0) $class = 'agenda-today';
+        elseif ($diff === 1) $class = 'agenda-tomorrow';
+        elseif ($diff > 1) $class = 'agenda-other';
+
+        $html .= '
+        <tr class="'.$class.'" data-search="'.strtolower($k->nama_kegiatan.' '.$k->tempat.' '.$k->disposisi.' '.$k->keterangan).'">
+            <td>
+                <div>'.$tanggal->translatedFormat('l, d F Y').'</div>
+                <div class="small">'.substr($k->jam,0,5).' WIB</div>
+            </td>
+            <td>'.$k->nama_kegiatan.'</td>
+            <td>'.$k->tempat.'</td>
+            <td>'.$k->disposisi.'</td>
+            <td>'.$k->keterangan.'</td>
+            <td class="td-aksi">
+                <button class="btn btn-sm btn-warning"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalEditAgenda"
+                    data-id="'.$k->kegiatan_id.'">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-danger delete-btn"
+                    data-id="'.$k->kegiatan_id.'">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>';
+    }
+
+    return response($html);
+}
+
         public function kegiatanDelete($id)
     {
         $agenda = Kegiatan::where('kegiatan_id', $id)->firstOrFail();

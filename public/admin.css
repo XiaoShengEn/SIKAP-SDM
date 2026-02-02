@@ -1365,3 +1365,9 @@ h5.fw-bold {
 .agenda-other .btn-danger {
     color: white;
 }
+
+/* SUDAH LEWAT - PUTIH */
+.agenda-past td {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+}

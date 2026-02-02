@@ -13,6 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('admin.css') }}" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+     @vite(['resources/js/app.js'])
+
 </head>
 
 <body>
@@ -1300,10 +1303,7 @@
     </form>
 
     <script src="{{ asset('superad.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    @vite(['resources/js/app.js'])
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>    
 
 </body>
 

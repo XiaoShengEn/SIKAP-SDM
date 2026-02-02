@@ -24,53 +24,27 @@ class NormalAdminController extends Controller
     // ===============================
     // AJAX LIST dengan PAGINATION & SORTING
     // ===============================
-public function kegiatanList(Request $request)
+public function list(Request $request)
 {
-    $today = \Carbon\Carbon::today();
+    $perPage = 5;
 
-    $all = Kegiatan::get()->map(function ($k) use ($today) {
+    $data = Kegiatan::agendaOrder()->paginate($perPage);
 
-        $tgl = \Carbon\Carbon::parse($k->tanggal_kegiatan);
-        $diff = $today->diffInDays($tgl, false);
-
-        if ($diff == 0) {
-            $status = 'today';
-        } elseif ($diff == 1) {
-            $status = 'tomorrow';
-        } else {
-            $status = 'other';
-        }
-
+    $data->getCollection()->transform(function ($k) {
         return [
             'id' => $k->kegiatan_id,
             'tanggal_kegiatan' => $k->tanggal_kegiatan,
-            'tanggal_label' => $tgl->locale('id')->translatedFormat('l, d F Y'),
-            'jam' => $k->jam ? \Carbon\Carbon::parse($k->jam)->format('H:i') : null,
-            'status' => $status,
+            'tanggal_label' => \Carbon\Carbon::parse($k->tanggal_kegiatan)
+                ->translatedFormat('l, d F Y'),
+            'jam' => $k->jam,
             'nama_kegiatan' => $k->nama_kegiatan,
             'tempat' => $k->tempat,
             'disposisi' => $k->disposisi,
             'keterangan' => $k->keterangan,
-            'diff' => abs($diff),
-            'is_past' => $diff < 0 ? 1 : 0,
         ];
     });
 
-    $sorted = $all->sortBy([
-        ['is_past', 'asc'],
-        ['diff', 'asc'],
-    ])->values();
-
-    $perPage = 4;
-    $page = $request->page ?? 1;
-    $items = $sorted->slice(($page - 1) * $perPage, $perPage)->values();
-
-    return response()->json([
-        'data' => $items,
-        'total' => $sorted->count(),
-        'current_page' => (int)$page,
-        'last_page' => ceil($sorted->count() / $perPage),
-    ]);
+    return response()->json($data);
 }
 
     // ===============================

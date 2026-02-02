@@ -2,51 +2,54 @@
 
 namespace App\Events;
 
-use App\Models\Kegiatan;
-use Carbon\Carbon;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Event untuk broadcast agenda updates via Reverb
+ */
 class AgendaUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $agenda;
+    public $kegiatan;
 
-    public function __construct(Kegiatan $agenda)
+    /**
+     * Create a new event instance.
+     */
+    public function __construct($kegiatan = null)
     {
-        $tanggal = Carbon::parse($agenda->tanggal_kegiatan)->locale('id');
-
-        $this->agenda = [
-            'kegiatan_id' => $agenda->kegiatan_id,
-
-            // 🔥 untuk tampilan
-            'tanggal_label' => $tanggal->translatedFormat('l, d F Y'),
-            'jam_label' => $agenda->jam
-                ? Carbon::parse($agenda->jam)->format('H:i') . ' WIB'
-                : '-',
-
-            // 🔥 data asli
-            'tanggal_kegiatan' => $agenda->tanggal_kegiatan,
-            'jam' => $agenda->jam,
-
-            'nama_kegiatan' => $agenda->nama_kegiatan,
-            'tempat' => $agenda->tempat,
-            'disposisi' => $agenda->disposisi,
-            'keterangan' => $agenda->keterangan,
-        ];
+        $this->kegiatan = $kegiatan;
     }
 
+    /**
+     * Get the channels the event should broadcast on.
+     */
     public function broadcastOn(): Channel
     {
-        return new Channel('agenda-channel');
+        // Public channel - semua user bisa listen
+        return new Channel('agenda-updates');
     }
 
+    /**
+     * Data yang akan dikirim ke client
+     */
+public function broadcastWith(): array
+{
+    return [
+        'id' => $this->kegiatan?->kegiatan_id,
+        'tanggal' => $this->kegiatan?->tanggal_kegiatan,
+    ];
+}
+
+    /**
+     * Nama event yang akan di-listen di frontend
+     */
     public function broadcastAs(): string
     {
-        return 'agenda.updated';
+        return 'AgendaUpdated';
     }
 }

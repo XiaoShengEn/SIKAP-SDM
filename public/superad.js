@@ -512,7 +512,7 @@ document.querySelectorAll('.modern-card-header').forEach(header => {
 /* =================================
  AUTO LOGOUT BERDASARKAN KETIDAKAKTIFAN USER (FIXED)
 ================================= */
-const AUTO_LOGOUT_INTERVAL = 5 * 60 * 1000;
+const AUTO_LOGOUT_INTERVAL = 3 * 60 * 1000;
 let autoLogoutTimer;
 
 function resetAutoLogoutTimer() {
@@ -593,12 +593,28 @@ document.addEventListener("DOMContentLoaded", function () {
         return "";
     }
 
+    function calculateTargetPage(tanggal) {
+    const rowsPerPage = 5; // sama dengan backend
+    const today = new Date(tanggal);
+
+    // ambil semua tanggal dari server (urutan sama dengan paginate)
+    return fetch('/kegiatan/list?page=1')
+        .then(r => r.json())
+        .then(r => {
+            const all = r.total; // total data
+            // karena urutan by tanggal asc
+            // data paling baru (hari ini) pasti di awal
+            // kita pakai logika posisi
+            return 1; // default
+        });
+}
+
     /* ===== LOAD DATA AGENDA ===== */
-    async function loadKegiatan(page = 1) {
-        currentPage = page;
+    window.loadKegiatanSuperadmin = async function(page = 1) {
+        window.currentAgendaPage = page;
 
         try {
-            const res = await fetch(`/superadmin/kegiatan/list?page=${page}`);
+            const res = await fetch(`/kegiatan/list?page=${page}`)
             if (!res.ok) throw new Error("HTTP " + res.status);
 
             const result = await res.json();
@@ -650,6 +666,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </td>
                 `;
                 tbody.appendChild(row);
+
             });
 
             // Update navigation buttons
@@ -660,15 +677,6 @@ document.addEventListener("DOMContentLoaded", function () {
 if (searchTerm) {
     performSearch();
 }
-
-// RESET STATE VISUAL LAMA AGAR REALTIME TERLIHAT
-searchTerm = "";
-currentPage = 1;
-
-tbody.querySelectorAll("tr").forEach(r => {
-    r.style.display = "";
-});
-
         } catch (e) {
             console.error("Error loading agenda:", e);
             tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Gagal memuat data</td></tr>`;
@@ -704,19 +712,21 @@ tbody.querySelectorAll("tr").forEach(r => {
     }
 
     /* ===== EVENT: PAGINATION BUTTONS ===== */
-    if (prevBtn) {
-        prevBtn.addEventListener("click", () => {
-            if (currentPage > 1) {
-                loadKegiatan(currentPage - 1);
-            }
-        });
-    }
+/* ===== EVENT: PAGINATION BUTTONS ===== */
+if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+        if ((window.currentAgendaPage || 1) > 1) {
+            window.loadKegiatanSuperadmin((window.currentAgendaPage || 1) - 1);
+        }
+    });
+}
 
-    if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
-            loadKegiatan(currentPage + 1);
-        });
-    }
+if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+        window.loadKegiatanSuperadmin((window.currentAgendaPage || 1) + 1);
+    });
+}
+
 
     /* ===== SUBMIT TAMBAH AGENDA ===== */
     if (formTambah) {
@@ -749,7 +759,7 @@ tbody.querySelectorAll("tr").forEach(r => {
 
                 // Reload data
                 currentPage = 1;
-                loadKegiatan(1);
+                window.loadKegiatanSuperadmin(1);
 
                 // Show success message (optional)
                 alert("Agenda berhasil ditambahkan!");
@@ -816,7 +826,7 @@ tbody.querySelectorAll("tr").forEach(r => {
                         throw new Error("Gagal menghapus agenda");
                     }
 
-                    loadKegiatan(currentPage);
+                    window.loadKegiatanSuperadmin(currentPage);
                     alert("Agenda berhasil dihapus!");
 
                 } catch (error) {
@@ -855,7 +865,7 @@ tbody.querySelectorAll("tr").forEach(r => {
                 if (modalInstance) modalInstance.hide();
 
                 // Reload data
-                loadKegiatan(currentPage);
+                window.loadKegiatanSuperadmin(currentPage);
 
                 alert("Agenda berhasil diperbarui!");
 
@@ -869,7 +879,7 @@ tbody.querySelectorAll("tr").forEach(r => {
     /* ================================
      INITIALIZE
     ================================ */
-    loadKegiatan(1);
+    window.loadKegiatanSuperadmin(1);
     loadNormalAdmin();
 
     /* ================================
@@ -1101,22 +1111,21 @@ tbody.querySelectorAll("tr").forEach(r => {
 
 });
 
-/* =================================
-REALTIME AGENDA LISTENER (REVERB)
-================================= */
-document.addEventListener("DOMContentLoaded", function () {
+/* ===== REALTIME LISTENER YANG BENAR ===== */
+document.addEventListener("DOMContentLoaded", () => {
+    if (!window.Echo) return;
 
-    if (!window.Echo) {
-        console.warn("Echo belum tersedia");
-        return;
-    }
+    window.Echo.channel('agenda-updates')
+        .listen('.AgendaUpdated', (e) => {
 
-    window.Echo.channel("agenda-channel")
-        .listen(".agenda.updated", (e) => {
-            console.log("Realtime agenda update:", e);
+            // Abaikan kalau ini dari CRUD kita sendiri
+            if (window.__lastEditedId === e.id) {
+                window.__lastEditedId = null;
+                return;
+            }
 
-            if (typeof loadKegiatan === "function") {
-                loadKegiatan(1);
+            if (window.loadKegiatanSuperadmin) {
+                window.loadKegiatanSuperadmin(window.currentAgendaPage || 1);
             }
         });
 });
