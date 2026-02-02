@@ -1129,3 +1129,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 });
+
+document.addEventListener('hidden.bs.modal', function () {
+    if (document.activeElement) {
+        document.activeElement.blur();
+    }
+});

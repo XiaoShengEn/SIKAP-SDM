@@ -1,4 +1,4 @@
-    /*.. CLOCK ..*/
+/*.. CLOCK ..*/
         function updateClock() {
             const now = new Date();
             const timeString = now.toLocaleTimeString('id-ID', {
@@ -206,3 +206,20 @@ if (pages.length > 1) {
             void el.offsetWidth;
             el.style.animation = "marquee 25s linear infinite";
         })();
+
+/* ================= TV DELAYED UPDATE (DEBOUNCE) ================= */
+
+let updateTimer = null;
+const DELAY = 60000; // 1 menit (ubah di sini kalau mau)
+
+window.addEventListener('agenda-updated', () => {
+    console.log('📡 Agenda update received → start 1 min timer');
+
+    // Kalau timer sudah jalan, abaikan event berikutnya
+    if (updateTimer) return;
+
+    updateTimer = setTimeout(() => {
+        console.log('🔄 TV reload after delay');
+        location.reload();
+    }, DELAY);
+});

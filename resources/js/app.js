@@ -27,7 +27,7 @@ window.Echo = new Echo({
 
 // Listen to agenda updates channel
 window.Echo.channel('agenda-updates')
-    .listen('AgendaUpdated', (e) => {
+    .listen('.AgendaUpdated', (e) => {
         console.log('📡 Agenda Updated Event Received:', e);
         
         // Dispatch custom browser event untuk didengar oleh JS lain

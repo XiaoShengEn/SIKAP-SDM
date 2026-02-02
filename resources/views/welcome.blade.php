@@ -206,8 +206,11 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('welcome.js') }}"></script>
+    {{-- <script src="/build/assets/echo.js"></script>
+    <script src="{{ asset('welcome.js') }}"></script> --}}
 
+    @vite(['resources/js/app.js', 'resources/js/welcome.js'])
+    
 </body>
 
 </html>

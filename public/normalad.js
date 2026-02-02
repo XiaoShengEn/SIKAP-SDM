@@ -284,3 +284,9 @@ function resetAutoLogoutTimer() {
 
 resetAutoLogoutTimer();
 
+/* BLUR ACTIVE ELEMENT ON MODAL HIDE */
+document.addEventListener('hidden.bs.modal', function () {
+    if (document.activeElement) {
+        document.activeElement.blur();
+    }
+});
