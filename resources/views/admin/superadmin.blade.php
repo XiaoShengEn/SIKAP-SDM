@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Super Admin Dashboard - SIGAP</title>
+    <title>Super Admin Dashboard - SIKAP SDM</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -12,6 +12,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('admin.css') }}" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    @vite(['resources/js/app.js'])
+
 </head>
 
 <body>
@@ -33,7 +37,7 @@
                 data-bs-toggle="modal"
                 data-bs-target="#logoutConfirmModal">
                 <i class="fas fa-sign-out-alt me-2"></i>
-                <span>Logout</span>
+                Keluar
             </a>
         </div>
     </nav>
@@ -82,7 +86,7 @@
                             data-bs-target="#profilTableBody"
                             aria-expanded="true"
                             style="cursor: pointer;">
-                            <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex justify-content-between align-items-center">
                                 <h4 class="mb-0">
                                     <i class="fas fa-user-tie me-2"></i> Profil Pimpinan
                                 </h4>
@@ -113,9 +117,8 @@
                                     </button>
                                 </div>
 
-
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper-table fixed-height">
+                                <div class="admin-table-wrapper-table ">
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -158,7 +161,7 @@
                                 </div>
 
                                 <!-- NAVIGATION BUTTONS -->
-                                <div class="profil-pagination-fixed">
+                                <div class="profil-nav-wrapper">
                                     <button class="btn-nav-admin btn-nav-prev-admin" id="profilPrevBtn" type="button">
                                         <i class="fas fa-chevron-left"></i>
                                     </button>
@@ -181,7 +184,7 @@
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h4 class="mb-0">
-                                    <i class="fas fa-video me-2"></i> Video
+                                    <i class="fas fa-video me-2"></i> Video Kegiatan
                                 </h4>
                                 <span class="badge badge-light">{{ count($videos) }} Data</span>
                             </div>
@@ -287,8 +290,6 @@
                                     </button>
                                 </div>
 
-                                <hr>
-
                 </section>
 
                 <!-- ========================= AGENDA ========================= -->
@@ -301,8 +302,10 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-calendar-alt me-2"></i> Agenda</h4>
-                                <span class="badge badge-light">{{ count($kegiatan) }} Data</span>
+                                <h4 class="mb-0">
+                                    <i class="fas fa-calendar-alt me-2"></i> Agenda Kegiatan
+                                </h4>
+                                <span class="badge badge-light" id="agendaTotalBadge">0 Data</span>
                             </div>
                         </div>
 
@@ -335,7 +338,6 @@
 
                                 </div>
 
-
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
                                 <div class="admin-table-wrapper-table agenda-wrapper">
                                     <table class="table table-hover align-middle mb-0">
@@ -350,61 +352,10 @@
                                             </tr>
                                         </thead>
 
-                                        <tbody id="agendaTbody">
-                                            @foreach ($kegiatan as $k)
-                                            @php
-                                            $eventDate = \Carbon\Carbon::parse($k->tanggal_kegiatan, 'Asia/Jakarta');
-                                            $dateFormatted = $eventDate->translatedFormat('l, d F Y');
-
-                                            // parsing jam
-                                            $jam = $k->jam
-                                            ? \Carbon\Carbon::parse($k->jam)->format('H.i')
-                                            : null;
-
-                                            if ($eventDate->isToday()) {
-                                            $statusClass = 'agenda-today';
-                                            } elseif ($eventDate->isTomorrow()) {
-                                            $statusClass = 'agenda-tomorrow';
-                                            } else {
-                                            $statusClass = 'agenda-other';
-                                            }
-                                            @endphp
-
-                                            <tr class="{{ $statusClass }}"
-                                                data-search="{{ strtolower($dateFormatted . ' ' . $k->nama_kegiatan . ' ' . $k->disposisi . ' ' . ($k->keterangan ?? '') . ' ' . $k->tempat) }}">
-                                                <td data-label="Tanggal">
-                                                    {{ $dateFormatted }}
-                                                    @if($jam)
-                                                    | {{ $jam }} WIB
-                                                    @endif
-                                                </td>
-                                                <td data-label="Kegiatan">{{ $k->nama_kegiatan }}</td>
-                                                <td data-label="Tempat">{{ $k->tempat }}</td>
-                                                <td data-label="Disposisi">{{ $k->disposisi }}</td>
-                                                <td data-label="Keterangan" class="td-long-text">
-                                                    {{ $k->keterangan }}
-                                                </td>
-                                                <td data-label="Aksi" class="td-aksi">
-                                                    <div class="aksi-group">
-                                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditKegiatan-{{ $k->kegiatan_id }}">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-
-                                                        <form action="{{ route('superadmin.kegiatan.delete', $k->kegiatan_id) }}" method="POST" onsubmit="return confirm('Hapus agenda ini?')" class="m-0">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button class="btn btn-danger btn-sm" type="submit"><i class="fas fa-trash"></i></button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            @endforeach
-
-                                            @if(count($kegiatan) === 0)
+                                        <tbody id="kegiatan-body">
                                             <tr>
-                                                <td colspan="6" class="text-center py-4">Belum ada agenda</td>
+                                                <td colspan="6" class="text-center py-4">Memuat data...</td>
                                             </tr>
-                                            @endif
                                         </tbody>
                                     </table>
                                 </div>
@@ -432,7 +383,7 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-scroll me-2"></i> Running Text</h4>
+                                <h4 class="mb-0"><i class="fas fa-scroll me-2"></i> Text Berjalan</h4>
                                 <span class="badge badge-light">{{ count($runningtext) }} Data</span>
                             </div>
                         </div>
@@ -508,7 +459,7 @@
                                 </div>
 
                                 <!-- NAVIGATION BUTTONS -->
-                                <div class="d-flex justify-content-center gap-2 mb-4">
+                                <div class="d-flex justify-content-center gap-3 mt-3 mb-4">
                                     <button class="btn-nav-admin btn-nav-prev-admin" id="runningtextPrevBtn" type="button">
                                         <i class="fas fa-chevron-left"></i>
                                     </button>
@@ -530,7 +481,7 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-users-cog me-2"></i> Admin</h4>
+                                <h4 class="mb-0"><i class="fas fa-users-cog me-2"></i> Kelola Admin</h4>
                                 <span class="badge badge-light">{{ count($normaladmin) }} Data</span>
                             </div>
                         </div>
@@ -564,9 +515,8 @@
 
                                 </div>
 
-
                                 <!-- TABLE WRAPPER (UNIVERSAL) -->
-                                <div class="admin-table-wrapper-table fixed-height">
+                                <div class="admin-table-wrapper-table">
                                     <table class="table table-hover align-middle mb-0">
                                         <thead class="sticky-thead-admin">
                                             <tr>
@@ -632,13 +582,15 @@
 
                             <div class="modal-header bg-danger text-white">
                                 <h5 class="modal-title">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Konfirmasi Logout
+                                    <i class="fas fa-sign-out-alt me-2"></i> Konfirmasi Keluar
                                 </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                <button type="button"
+                                    class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
                             </div>
 
                             <div class="modal-body text-center">
-                                <p class="fs-5 mb-0">Apakah kamu ingin logout?</p>
+                                <p class="fs-5 mb-0">Apakah kamu ingin Keluar?</p>
                             </div>
 
                             <div class="modal-footer">
@@ -646,9 +598,15 @@
                                     Batal
                                 </button>
 
-                                <a href="{{ url('/logout') }}" class="btn btn-danger">
-                                    Ya, Logout
-                                </a>
+                                <!-- 🔥 SATU-SATUNYA LOGOUT -->
+                                <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                    @csrf
+                                    <button type="submit"
+                                        class="btn btn-danger"
+                                        onclick="localStorage.removeItem('open-section')">
+                                        Ya, Keluar
+                                    </button>
+                                </form>
                             </div>
 
                         </div>
@@ -679,7 +637,6 @@
                                         class="form-control "
                                         name="nama_pimpinan"
                                         maxlength="100"
-                                        oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
 
                                     <label class="form-label fw-bold">Jabatan:</label>
@@ -687,7 +644,6 @@
                                         class="form-control "
                                         name="jabatan_pimpinan"
                                         maxlength="100"
-                                        oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
 
                                 </div>
@@ -773,7 +729,7 @@
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
 
-                            <form action="{{ route('superadmin.kegiatan.store') }}" method="POST">
+                            <form id="form-kegiatan">
                                 @csrf
 
                                 <div class="modal-body">
@@ -794,8 +750,6 @@
                                                 class="form-control"
                                                 required>
                                         </div>
-
-
 
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold">Nama Kegiatan</label>
@@ -837,9 +791,11 @@
                                     <button class="btn btn-secondary" data-bs-dismiss="modal">
                                         Batal
                                     </button>
-                                    <button class="btn btn-success" type="submit">
-                                        <i class="fas fa-save me-1"></i> Simpan Agenda
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save me-1"></i> Simpan
                                     </button>
+
+
                                 </div>
                             </form>
                         </div>
@@ -900,58 +856,60 @@
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
 
-                            <form action="{{ route('superadmin.normaladmin.store') }}" method="POST">
+                            <form id="formTambahAdmin">
                                 @csrf
 
                                 <div class="modal-body">
+                                    <div class="row g-3">
 
-                                    <div class="row">
-
-                                        <div class="col-md-6 mb-3">
+                                        <!-- NIP -->
+                                        <div class="col-md-6">
                                             <label class="form-label fw-bold">NIP</label>
-                                            <input type="number"
+                                            <input type="text"
                                                 name="nip"
                                                 class="form-control"
-                                                inputmode="numeric"
-                                                oninput="this.value=this.value.replace(/\D/g,'').slice(0,18)"
-                                                placeholder="18 digit NIP">
+                                                maxlength="18"
+                                                required>
                                         </div>
 
-                                        <div class="col-md-6 mb-3">
+                                        <!-- Role -->
+                                        <div class="col-md-6">
                                             <label class="form-label fw-bold">Role</label>
-                                            <select name="role_admin" class="form-control" required>
+                                            <select name="role_admin" class="form-select" required>
                                                 <option value="normaladmin">Admin</option>
                                                 <option value="superadmin">Super Admin</option>
                                             </select>
                                         </div>
 
-                                        <div class="col-md-6 mb-3">
+                                        <!-- Nama -->
+                                        <div class="col-md-6">
                                             <label class="form-label fw-bold">Nama Admin</label>
                                             <input type="text"
                                                 name="nama_admin"
                                                 class="form-control"
-                                                maxlength="30"
                                                 required>
                                         </div>
 
-                                        <div class="col-md-6 mb-3">
+                                        <!-- Bagian -->
+                                        <div class="col-md-6">
                                             <label class="form-label fw-bold">Bagian</label>
                                             <input type="text"
                                                 name="bagian"
                                                 class="form-control"
-                                                maxlength="30"
                                                 required>
                                         </div>
 
-                                        <div class="col-12 mb-3">
+                                        <!-- Password -->
+                                        <div class="col-12">
                                             <label class="form-label fw-bold">Password</label>
-                                            <div class="input-group password-wrapper">
+                                            <div class="input-group w-100">
                                                 <input type="password"
                                                     name="password_admin"
                                                     id="password_admin_modal"
                                                     class="form-control"
-                                                    maxlength="20"
+                                                    minlength="8"
                                                     required>
+
                                                 <button type="button"
                                                     class="btn btn-outline-secondary password-toggle"
                                                     data-target="password_admin_modal">
@@ -959,15 +917,18 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div class="col-12 mb-3">
-                                            <label class="form-label fw-bold">Konfirmasi password</label>
-                                            <div class="input-group password-wrapper">
+
+                                        <!-- Konfirmasi Password -->
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold">Konfirmasi Password</label>
+                                            <div class="input-group w-100">
                                                 <input type="password"
                                                     name="password_admin_confirmation"
                                                     id="password_admin_confirm_modal"
                                                     class="form-control"
-                                                    maxlength="20"
+                                                    minlength="8"
                                                     required>
+
                                                 <button type="button"
                                                     class="btn btn-outline-secondary password-toggle"
                                                     data-target="password_admin_confirm_modal">
@@ -975,21 +936,21 @@
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
 
+                                    </div>
                                 </div>
 
+                                <!-- Footer -->
                                 <div class="modal-footer">
-                                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                         Batal
                                     </button>
-                                    <button class="btn btn-success" type="submit">
-                                        <i class="fas fa-save me-1"></i> Simpan Admin
+                                    <button type="submit" class="btn btn-success">
+                                        Simpan Admin
                                     </button>
                                 </div>
 
                             </form>
-
                         </div>
                     </div>
                 </div>
@@ -1017,7 +978,6 @@
                                         name="nama_pimpinan"
                                         class="form-control "
                                         maxlength="100"
-                                        oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
 
                                     <label class="form-label fw-bold">Jabatan:</label>
@@ -1025,7 +985,6 @@
                                         name="jabatan_pimpinan"
                                         class="form-control "
                                         maxlength="100"
-                                        oninput="this.value=this.value.replace(/[^a-zA-Z\s]/g,'')"
                                         required>
                                 </div>
 
@@ -1140,7 +1099,7 @@
                                         Tutup
                                     </button>
                                     <button class="btn btn-warning" type="submit">
-                                        <i class="fas fa-save me-1"></i> Update
+                                        <i class="fas fa-save me-1"></i> Simpan
                                     </button>
                                 </div>
 
@@ -1151,71 +1110,98 @@
                 </div>
                 @endforeach
 
-
-                @foreach ($kegiatan as $k)
-                <div class="modal fade" id="modalEditKegiatan-{{ $k->kegiatan_id }}" data-bs-backdrop="false" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
+                <!-- Modal Edit Agenda -->
+                <div class="modal fade" id="modalEditAgenda" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
                         <div class="modal-content">
-                            <div class="modal-header bg-warning">
-                                <h5 class="modal-title">Edit Agenda</h5>
-                                <button class="btn-close" data-bs-dismiss="modal"></button>
+
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-edit me-2"></i> Edit Agenda
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
 
-                            <form action="{{ route('superadmin.kegiatan.update', $k->kegiatan_id) }}" method="POST">
+                            <form id="form-edit-kegiatan">
                                 @csrf
+
+                                <input type="hidden" id="edit_id" name="kegiatan_id">
 
                                 <div class="modal-body">
 
-                                    <label class="form-label">Tanggal:</label>
-                                    <input type="date"
-                                        name="tanggal_kegiatan"
-                                        class="form-control "
-                                        value="{{ \Carbon\Carbon::parse($k->tanggal_kegiatan)->format('Y-m-d') }}">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold">Tanggal</label>
+                                            <input type="date"
+                                                id="edit_tanggal"
+                                                name="tanggal_kegiatan"
+                                                class="form-control"
+                                                required>
+                                        </div>
 
-                                    <label class="form-label">Jam:</label>
-                                    <input type="time"
-                                        name="jam"
-                                        class="form-control "
-                                        value="{{ $k->jam ? \Carbon\Carbon::parse($k->jam)->format('H:i') : '' }}">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold">Jam</label>
+                                            <input type="time"
+                                                id="edit_jam"
+                                                name="jam"
+                                                class="form-control"
+                                                required>
+                                        </div>
 
-                                    <label class="form-label">Nama Kegiatan:</label>
-                                    <input type="text"
-                                        name="nama_kegiatan"
-                                        class="form-control "
-                                        maxlength="50"
-                                        value="{{ $k->nama_kegiatan }}">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold">Nama Kegiatan</label>
+                                            <input type="text"
+                                                id="edit_nama"
+                                                name="nama_kegiatan"
+                                                class="form-control"
+                                                maxlength="50"
+                                                required>
+                                        </div>
 
-                                    <label class="form-label">Tempat:</label>
-                                    <input type="text"
-                                        name="tempat"
-                                        class="form-control "
-                                        maxlength="50"
-                                        value="{{ $k->tempat }}">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold">Tempat</label>
+                                            <input type="text"
+                                                id="edit_tempat"
+                                                name="tempat"
+                                                class="form-control"
+                                                maxlength="50">
+                                        </div>
 
-                                    <label class="form-label">Disposisi:</label>
-                                    <input type="text"
-                                        name="disposisi"
-                                        class="form-control "
-                                        maxlength="20"
-                                        value="{{ $k->disposisi }}">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label fw-bold">Disposisi</label>
+                                            <input type="text"
+                                                id="edit_disposisi"
+                                                name="disposisi"
+                                                class="form-control"
+                                                maxlength="20">
+                                        </div>
 
-                                    <label class="form-label">Keterangan:</label>
-                                    <textarea name="keterangan"
-                                        class="form-control "
-                                        maxlength="50">{{ $k->keterangan }}</textarea>
+                                        <div class="col-12 mb-3">
+                                            <label class="form-label fw-bold">Keterangan</label>
+                                            <textarea
+                                                id="edit_keterangan"
+                                                name="keterangan"
+                                                class="form-control"
+                                                rows="3"
+                                                maxlength="50"></textarea>
+                                        </div>
+                                    </div>
+
                                 </div>
 
                                 <div class="modal-footer">
-                                    <button class="btn btn-primary w-100" type="submit">
-                                        <i class="fas fa-save me-2"></i> Simpan Perubahan
+                                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">
+                                        Batal
+                                    </button>
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-save me-1"></i> Simpan
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
-                </div>
-                @endforeach
 
+                </div>
 
                 @foreach ($runningtext as $r)
                 <div class="modal fade" id="modalEditRunningText-{{ $r->id_text }}" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
@@ -1244,448 +1230,79 @@
                 </div>
                 @endforeach
 
-                @foreach ($normaladmin as $n)
-                <div class="modal fade" id="modalEditNormalAdmin-{{ $n->id_admin }}" data-bs-backdrop="false" tabindex="-1" aria-hidden="true">
+                <div class="modal fade" id="modalEditNormalAdmin" data-bs-backdrop="false" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header bg-warning">
                                 <h5 class="modal-title">Edit Admin</h5>
-                                <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                <button class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
 
-                            <form action="{{ route('superadmin.normaladmin.update', $n->id_admin) }}" method="POST">
+                            <form id="formEditAdmin">
                                 @csrf
+                                <input type="hidden" id="edit_id_admin">
+
                                 <div class="modal-body">
                                     <label class="form-label fw-bold">NIP</label>
-                                    <input type="number"
-                                        name="nip"
-                                        class="form-control"
-                                        inputmode="numeric"
-                                        oninput="this.value=this.value.replace(/\D/g,'').slice(0,18)"
-                                        placeholder="18 digit NIP">
+                                    <input type="text" name="nip" id="edit_nip" class="form-control" maxlength="18" required>
 
-                                    <label class="form-label fw-bold">Nama Admin:</label>
-                                    <input type="text"
-                                        name="nama_admin"
-                                        class="form-control"
-                                        maxlength="30"
-                                        value="{{ $n->nama_admin }}"
-                                        required>
+                                    <label class="form-label fw-bold mt-2">Nama Admin</label>
+                                    <input type="text" name="nama_admin" id="edit_nama_admin" class="form-control">
 
-                                    <label class="form-label fw-bold">Bagian:</label>
-                                    <input type="text"
-                                        name="bagian"
-                                        class="form-control "
-                                        maxlength="30"
-                                        value="{{ $n->bagian }}"
-                                        required>
+                                    <label class="form-label fw-bold mt-2">Bagian</label>
+                                    <input type="text" name="bagian" id="edit_bagian" class="form-control">
 
-                                    <label class="form-label fw-bold">Password (Kosongkan jika tidak diganti):</label>
-                                    <div class="input-group password-wrapper">
+                                    <label class="form-label fw-bold mt-2">Password (opsional)</label>
+                                    <div class="input-group">
                                         <input type="password"
                                             name="password_admin"
-                                            id="password_edit_{{ $n->id_admin }}"
-                                            class="form-control"
-                                            maxlength="20">
+                                            id="edit_password_admin"
+                                            class="form-control">
 
                                         <button type="button"
                                             class="btn btn-outline-secondary password-toggle"
-                                            data-target="password_edit_{{ $n->id_admin }}"
-                                            aria-label="Toggle password">
+                                            data-target="edit_password_admin">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
 
-                                    <label class="form-label fw-bold">Konfirmasi password (Kosongkan jika tidak diganti):</label>
-                                    <div class="input-group password-wrapper">
+                                    <label class="form-label fw-bold mt-2">Konfirmasi</label>
+                                    <div class="input-group">
                                         <input type="password"
                                             name="password_admin_confirmation"
-                                            id="password_edit_confirm_{{ $n->id_admin }}"
-                                            class="form-control"
-                                            maxlength="20">
+                                            id="edit_password_admin_confirmation"
+                                            class="form-control">
 
                                         <button type="button"
                                             class="btn btn-outline-secondary password-toggle"
-                                            data-target="password_edit_confirm_{{ $n->id_admin }}"
-                                            aria-label="Toggle password">
+                                            data-target="edit_password_admin_confirmation">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </div>
-                                </div>
 
-                                <div class="modal-footer">
-                                    <button class="btn btn-primary w-100" type="submit">
-                                        <i class="fas fa-save me-2"></i> Simpan Perubahan
-                                    </button>
-                                </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-primary w-100">Simpan</button>
+                                    </div>
                             </form>
                         </div>
                     </div>
                 </div>
-                @endforeach
 
             </div>
         </div>
     </main>
 
-    <!-- JS -->
-    <!-- =========================================
-    = = = = = = 1. SIDEBAR NAVIGATION = = = = =
-    =  - Buka/tutup sidebar
-    =  - Auto close di HP
-    =  - Highlight menu sesuai posisi scroll
-    =  - Smooth scroll saat klik menu
-    ========================================= -->
-    <script>
-        (function() {
-            const sidebar = document.getElementById('sidebar');
-            const content = document.getElementById('content');
-            const menuBtn = document.getElementById('menuBtn');
+    <!-- Ganti bagian script di akhir file superadmin.blade.php -->
 
-            function toggleSidebar() {
-                sidebar.classList.toggle('show');
-                if (window.innerWidth > 992) content.classList.toggle('with-sidebar');
-            }
+    <!-- AUTO LOGOUT FORM (JANGAN DIHAPUS) -->
+    <form id="auto-logout-form"
+        action="{{ route('logout') }}"
+        method="POST"
+        style="display:none;">
+        @csrf
+    </form>
 
-            menuBtn.addEventListener('click', toggleSidebar);
-
-            document.addEventListener('click', function(e) {
-                if (window.innerWidth <= 992) {
-                    if (!sidebar.contains(e.target) && !menuBtn.contains(e.target) && sidebar.classList.contains('show')) {
-                        sidebar.classList.remove('show');
-                    }
-                }
-            });
-
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 992) {
-                    sidebar.classList.remove('show');
-                    content.classList.remove('with-sidebar');
-                }
-            });
-
-            const sidebarItems = document.querySelectorAll('.sidebar-item');
-            const sections = document.querySelectorAll('section[id]');
-
-            function setActiveSidebarItem() {
-                let current = '';
-                const scrollPosition = window.pageYOffset + 150;
-
-                sections.forEach(section => {
-                    if (
-                        scrollPosition >= section.offsetTop &&
-                        scrollPosition < section.offsetTop + section.clientHeight
-                    ) {
-                        current = section.id;
-                    }
-                });
-
-                if (current) {
-                    sidebarItems.forEach(item => {
-                        item.classList.remove('active');
-                        if (item.getAttribute('href') === '#' + current) item.classList.add('active');
-                    });
-                }
-            }
-
-            let scrollTimeout;
-            window.addEventListener('scroll', function() {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(setActiveSidebarItem, 100);
-            });
-
-            sidebarItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    const targetId = this.getAttribute('href');
-
-                    sidebarItems.forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-
-                    if (targetId.startsWith('#')) {
-                        e.preventDefault();
-                        const targetSection = document.querySelector(targetId);
-                        if (targetSection) {
-                            window.scrollTo({
-                                top: targetSection.offsetTop - 100,
-                                behavior: 'smooth'
-                            });
-                        }
-                    }
-
-                    if (window.innerWidth <= 992) sidebar.classList.remove('show');
-                });
-            });
-
-            setActiveSidebarItem();
-        })();
-    </script>
-
-    <!-- =========================================
-    = = = = = = 2. REMEMBER LAST COLLAPSE = = =
-    =  - Menyimpan panel yang terakhir dibuka
-    =  - Saat reload tetap terbuka
-    ========================================= -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const lastOpen = localStorage.getItem("open-section");
-            if (lastOpen) {
-                const el = document.getElementById(lastOpen);
-                if (el) el.classList.add("show");
-            }
-
-            document.querySelectorAll('.collapse').forEach(c => {
-                c.addEventListener('show.bs.collapse', function() {
-                    localStorage.setItem("open-section", this.id);
-                });
-            });
-        });
-    </script>
-
-    <!-- =========================================
-    = = = = = 3. GLOBAL PAGINATION SYSTEM = = =
-    =  Dipakai oleh:
-    =   - Profil
-    =   - Video
-    =   - Agenda
-    =   - Running Text
-    =   - Normal Admin
-    =
-    =  Fungsi:
-    =   - Pagination
-    =   - Search
-    =   - Menjaga tinggi tabel stabil (row kosong)
-    ========================================= -->
-    <script>
-        const rowsPerPageMap = {
-            profil: 3,
-            video: 2,
-            agenda: 4,
-            runningtext: 6,
-            normaladmin: 4,
-        };
-
-        function initTablePagination(tableName) {
-            const tbody = document.getElementById(tableName + "Tbody");
-            const searchInput = document.getElementById(tableName + "Search");
-            const prevBtn = document.getElementById(tableName + "PrevBtn");
-            const nextBtn = document.getElementById(tableName + "NextBtn");
-
-            if (!tbody) return;
-
-            const allRows = Array.from(tbody.querySelectorAll("tr"));
-            const allDataRows = allRows.filter(row => {
-                const firstCell = row.querySelector("td");
-                return firstCell && !firstCell.hasAttribute("colspan");
-            });
-
-            let filteredRows = [...allDataRows];
-            let currentPage = 0;
-            const rowsPerPage = rowsPerPageMap[tableName] || 4;
-
-            const emptyRowClass = tableName + "-empty-row";
-            const existingEmptyRows = Array.from(tbody.querySelectorAll("." + emptyRowClass));
-            const firstDataRow = allDataRows[0];
-            const colCount = firstDataRow ? firstDataRow.querySelectorAll("td").length : 6;
-
-            if (existingEmptyRows.length < rowsPerPage) {
-                const rowsToAdd = rowsPerPage - existingEmptyRows.length;
-                for (let i = 0; i < rowsToAdd; i++) {
-                    const emptyRow = document.createElement("tr");
-                    emptyRow.className = emptyRowClass;
-                    emptyRow.innerHTML = `<td colspan="${colCount}" style="height:60px;border:none;"></td>`;
-                    tbody.appendChild(emptyRow);
-                }
-            }
-
-            const emptyRows = Array.from(tbody.querySelectorAll("." + emptyRowClass));
-
-            function showPage(page) {
-                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-                if (page < 0) page = 0;
-                if (page >= totalPages && totalPages > 0) page = totalPages - 1;
-
-                currentPage = page;
-
-                allDataRows.forEach(r => r.style.display = 'none');
-                emptyRows.forEach(r => r.style.display = 'none');
-
-                const start = currentPage * rowsPerPage;
-                const end = start + rowsPerPage;
-                const visible = filteredRows.slice(start, end);
-
-                visible.forEach(r => r.style.display = 'table-row');
-
-                const filler = emptyRows.slice(0, rowsPerPage - visible.length);
-                filler.forEach(r => r.style.display = 'table-row');
-
-                if (prevBtn && nextBtn) {
-                    prevBtn.disabled = currentPage === 0;
-                    nextBtn.disabled = currentPage >= totalPages - 1 || totalPages === 0;
-                }
-            }
-
-            function performSearch() {
-                const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-                filteredRows = term === '' ? [...allDataRows] :
-                    allDataRows.filter(row =>
-                        (row.getAttribute('data-search') || '').includes(term)
-                    );
-
-                currentPage = 0;
-                showPage(0);
-            }
-
-            if (searchInput) searchInput.addEventListener('input', performSearch);
-            if (prevBtn) prevBtn.addEventListener('click', () => showPage(currentPage - 1));
-            if (nextBtn) nextBtn.addEventListener('click', () => {
-                const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
-                if (currentPage < totalPages - 1) showPage(currentPage + 1);
-            });
-
-            showPage(0);
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const tables = ['profil', 'video', 'agenda', 'runningtext', 'normaladmin'];
-
-            tables.forEach(name => {
-                initTablePagination(name);
-
-                const clearBtn = document.getElementById(name + 'ClearSearch');
-                const searchInput = document.getElementById(name + 'Search');
-
-                if (clearBtn && searchInput) {
-                    clearBtn.addEventListener('click', () => {
-                        searchInput.value = '';
-                        initTablePagination(name);
-                    });
-                }
-            });
-        });
-    </script>
-
-    <!-- =========================================
-    = = = = = = 5. VIDEO SECTION = = = = =
-    =  - Counter textarea modal tambah video
-    =  - Counter textarea edit video
-    ========================================= -->
-    <script>
-        const videoModalTextarea = document.getElementById('video_keterangan_modal');
-        const videoModalCounter = document.getElementById('videoModalCounter');
-
-        if (videoModalTextarea) {
-            videoModalTextarea.addEventListener('input', () => {
-                videoModalCounter.innerText = videoModalTextarea.value.length;
-            });
-        }
-
-        document.querySelectorAll('.video-edit-textarea').forEach(textarea => {
-            const counterEl = document.getElementById(textarea.dataset.counter);
-            textarea.addEventListener('input', () => {
-                counterEl.innerText = textarea.value.length;
-            });
-        });
-    </script>
-
-    <!-- =========================================
-    = = = = 9. PASSWORD VISIBILITY TOGGLE = =
-    =  - Show / hide password
-    ========================================= -->
-    <script>
-        document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.password-toggle');
-            if (!btn) return;
-
-            const input = document.getElementById(btn.dataset.target);
-            if (!input) return;
-
-            const isPassword = input.type === 'password';
-            input.type = isPassword ? 'text' : 'password';
-            btn.classList.toggle('active', isPassword);
-        });
-    </script>
-
-
-
-    <!-- =========================================
-    = = = = 10. GLOBAL MAXLENGTH COUNTER = =
-    =  - Semua input/textarea dengan maxlength
-    =  - Menampilkan counter
-    ========================================= -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach(input => {
-                const max = parseInt(input.getAttribute('maxlength'));
-                if (!max) return;
-
-                const counter = document.createElement('small');
-                counter.className = 'text-muted d-block text-start counter-tight';
-
-                // 🔑 CEK APAKAH INPUT ADA DI INPUT-GROUP
-                const inputGroup = input.closest('.input-group');
-
-                if (inputGroup) {
-                    inputGroup.after(counter); // TARUH SETELAH INPUT-GROUP
-                } else {
-                    input.after(counter); // NORMAL
-                }
-
-                function updateCounter() {
-                    let length = input.value.length;
-                    if (length > max) {
-                        input.value = input.value.slice(0, max);
-                        length = max;
-                    }
-
-                    counter.innerText = `${length}/${max} karakter`;
-                    counter.style.color = length >= max ? 'red' : '';
-                }
-
-                input.addEventListener('input', updateCounter);
-                updateCounter();
-            });
-        });
-    </script>
-
-
-    <!-- ============================================================
-     AUTO LOGOUT BERDASARKAN KETIDAKAKTIFAN USER
-     ------------------------------------------------------------
-     Fungsi:
-     - Menghitung waktu tidak ada aktivitas user
-     - Jika melewati batas waktu, user otomatis logout
-     
-     Aktivitas yang dianggap aktif:
-     - Mouse bergerak
-     - Keyboard ditekan
-     - Click
-     - Scroll
-     - Touch (untuk device mobile)
-    ============================================================ -->
-
-    <!-- <script>
-        let autoLogoutTimer;
-        const AUTO_LOGOUT_INTERVAL = 5 * 60 * 1000; // Waktu tidak aktif sebelum logout (5 menit)
-
-        function resetAutoLogoutTimer() {
-            clearTimeout(autoLogoutTimer);
-            autoLogoutTimer = setTimeout(() => {
-                window.location.href = "{{ url('/logout') }}";
-            }, AUTO_LOGOUT_INTERVAL);
-        }
-
-        // Aktivitas yang dianggap sebagai aktivitas pengguna
-        window.addEventListener('mousemove', resetAutoLogoutTimer);
-        window.addEventListener('keydown', resetAutoLogoutTimer);
-        window.addEventListener('click', resetAutoLogoutTimer);
-        window.addEventListener('scroll', resetAutoLogoutTimer);
-        window.addEventListener('touchstart', resetAutoLogoutTimer);
-
-        // Mulai timer pertama kali
-        resetAutoLogoutTimer();
-    </script> -->
-
+    <script src="{{ asset('superad.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

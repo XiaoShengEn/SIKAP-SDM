@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class WelcomeController extends Controller
@@ -11,57 +12,39 @@ class WelcomeController extends Controller
     public function index()
     {
         Carbon::setLocale('id');
-
-        if (app()->environment('testing')) {
-            return view('welcome', [
-                'profil' => collect(),
-                'videos' => collect(),
-                'playlist' => [],
-                'agendaKegiatan' => collect(),
-                'runningtext' => [],
-            ]);
-        }
-
-        // ===============================
-        // SET BAHASA INDONESIA
-        // ===============================
-        Carbon::setLocale('id');
         setlocale(LC_TIME, 'id_ID.utf8');
 
-        // ===============================
-        // PROFIL PIMPINAN
-        // ===============================
-        $profil = DB::table('tb_profil')
-            ->orderBy('id_profil', 'asc')
-            ->get();
+        //  DATA DARI DATABASE
+        $profil = DB::table('tb_profil')->orderBy('id_profil')->get();
 
-        // ===============================
-        // VIDEO (playlist)
-        // ===============================
-        $videos = DB::table('tb_video')
-            ->orderBy('video_id', 'asc')
-            ->get();
-
+        $videos = DB::table('tb_video')->orderBy('video_id')->get();
         $playlist = $videos->pluck('video_kegiatan')
             ->map(fn($v) => asset('videos/' . $v))
             ->toArray();
 
-        // ===============================
-        // AGENDA (HANYA HARI INI & KE DEPAN)
-        // ===============================
         $agendaKegiatan = DB::table('tb_kegiatan')
             ->whereDate('tanggal_kegiatan', '>=', Carbon::today('Asia/Jakarta'))
-            ->orderBy('tanggal_kegiatan', 'asc')
-            ->orderBy('jam', 'asc')
+            ->orderBy('tanggal_kegiatan')
+            ->orderBy('jam')
             ->get();
 
-        // ===============================
-        // RUNNING TEXT
-        // ===============================
         $runningtext = DB::table('tb_runningtext')
-            ->orderBy('id_text', 'asc')
+            ->orderBy('id_text')
             ->pluck('isi_text')
             ->toArray();
+
+        //  ultah dari API 
+        $ultahText = DB::table('birthday_today')
+            ->pluck('nama')
+            ->map(fn($n) => "🎉 Selamat Berulang Tahun : $n 🎉")
+            ->toArray();
+
+        if (count($ultahText) === 0) {
+            $ultahText = ['-'];
+        }
+
+        // gabungkan dengan running text lain
+        $runningtext = array_merge($ultahText, $runningtext);
 
         return view('welcome', compact(
             'profil',

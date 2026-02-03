@@ -1086,6 +1086,13 @@ h5.fw-bold {
     border-collapse: collapse;
 }
 
+.collapse,
+.collapsing {
+    will-change: height;
+    transform: translateZ(0);
+}
+
+
 /* semua cell WAJIB wrap */
 #agendaTableContainer th,
 #agendaTableContainer td {
@@ -1211,18 +1218,6 @@ h5.fw-bold {
     transform: none !important;
     transition: none !important;
 }
-#profil .modern-card {
-    overflow: visible !important;
-}
-.profil-nav-wrapper {
-    height: 70px;              /* ruang tetap */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-
-    margin-top: 20px;
-}
 
 .admin-table-wrapper-fluid {
     width: 100%;
@@ -1246,7 +1241,7 @@ h5.fw-bold {
     padding-bottom: 90px; /* ruang untuk tombol */
 }
 
-#profil .profil-pagination-fixed {
+#profil .profil-nav-wrapper {
     position: absolute;
     bottom: 20px;               /* POSISI TETAP */
     left: 0;
@@ -1296,8 +1291,7 @@ h5.fw-bold {
     line-height: 1.4;
 }
 
-.agenda-wrapper 
- {
+.agenda-wrapper {
     min-height: auto;        /* BIARKAN TINGGI ALAMI */
     overflow: visible;       /* JANGAN POTONG ROW */
     table-layout: fixed;
@@ -1315,4 +1309,65 @@ h5.fw-bold {
 .admin-table-wrapper-table.running-wrapper table {
     width: 100%;
     table-layout: fixed;
+}
+
+/* =================================
+   WARNA BARIS PENUH UNTUK AGENDA
+   - Hijau: Hari ini
+   - Kuning: Besok
+   - Abu-abu: Setelah besok
+================================= */
+
+/* HARI INI - HIJAU (semua cell dalam baris) */
+.agenda-today td {
+    background-color: #28a745 !important;
+    color: white !important;
+    font-weight: 500;
+}
+
+/* BESOK - KUNING (semua cell dalam baris) */
+.agenda-tomorrow td {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+    font-weight: 500;
+}
+
+/* SETELAH BESOK - ABU-ABU (semua cell dalam baris) */
+.agenda-other td {
+    background-color: #e9ecef !important; /* abu soft */
+    color: #212529 !important;
+}
+
+
+/* Hover effect tetap berfungsi */
+.agenda-today:hover td,
+.agenda-tomorrow:hover td,
+.agenda-other:hover td {
+    filter: brightness(0.95);
+}
+
+/* Button styling di dalam baris berwarna */
+.agenda-today .btn,
+.agenda-tomorrow .btn,
+.agenda-other .btn {
+    opacity: 1;
+}
+
+/* Pastikan text tetap readable di button */
+.agenda-today .btn-warning,
+.agenda-tomorrow .btn-warning,
+.agenda-other .btn-warning {
+    color: #212529;
+}
+
+.agenda-today .btn-danger,
+.agenda-tomorrow .btn-danger,
+.agenda-other .btn-danger {
+    color: white;
+}
+
+/* SUDAH LEWAT - PUTIH */
+.agenda-past td {
+    background-color: #ffffff !important;
+    color: #212529 !important;
 }

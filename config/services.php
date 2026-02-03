@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'kemendagri' => [
+        'url' => env('KEMENDAGRI_API_URL'),
+        'token' => env('KEMENDAGRI_API_TOKEN'),
+    ],
+
 ];

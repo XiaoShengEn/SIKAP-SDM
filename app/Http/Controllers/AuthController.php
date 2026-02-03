@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -14,21 +15,26 @@ class AuthController extends Controller
 
     public function loginProcess(Request $request)
     {
+        $request->validate([
+            'nip' => 'required',
+            'password' => 'required'
+        ]);
+
         $admin = DB::table('tb_admin')
             ->where('nip', $request->nip)
             ->first();
 
         if (!$admin) {
-            return back()->withErrors(['Email tidak ditemukan']);
+            return back()->withErrors(['NIP tidak ditemukan']);
         }
 
-        if ($admin->password_admin !== $request->password) {
+        if (!Hash::check($request->password, $admin->password_admin)) {
             return back()->withErrors(['Password salah']);
         }
 
         session([
             'admin_id' => $admin->id_admin,
-            'nip'    => $admin->nip,
+            'nip'      => $admin->nip,
             'role'     => $admin->role_admin
         ]);
 
