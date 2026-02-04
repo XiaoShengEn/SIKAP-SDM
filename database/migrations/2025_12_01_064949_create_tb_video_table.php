@@ -12,9 +12,9 @@ return new class extends Migration
     public function up()
     {
         Schema::create('tb_video', function (Blueprint $table) {
-            $table->id();
-            $table->string('file_video'); // <-- WAJIB ADA INI
-            $table->timestamps();
+            $table->bigIncrements('video_id');
+            $table->string('video_kegiatan', 255);
+            $table->string('video_keterangan', 255);
         });
     }
 

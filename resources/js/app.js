@@ -1,19 +1,19 @@
 /**
- * SETUP LARAVEL ECHO & REVERB
- * File: resources/js/app.js
- * 
- * Install dependencies terlebih dahulu:
- * npm install --save laravel-echo pusher-js
+ * Reverb + Echo bootstrap for realtime updates.
+ *
+ * This file runs on both TV and admin pages via `@vite(['resources/js/app.js'])`.
  */
 
 import './bootstrap';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
-// Make Pusher available globally
 window.Pusher = Pusher;
 
-// Initialize Laravel Echo with Reverb
+function dispatchBrowserEvent(name, detail) {
+    window.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
 window.Echo = new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY,
@@ -25,26 +25,22 @@ window.Echo = new Echo({
     disableStats: true,
 });
 
-// Listen to agenda updates channel
-window.Echo.channel('agenda-updates')
-    .listen('.AgendaUpdated', (e) => {
-        console.log('📡 Agenda Updated Event Received:', e);
-        
-        // Dispatch custom browser event untuk didengar oleh JS lain
-        window.dispatchEvent(new CustomEvent('agenda-updated', {
-            detail: e
-        }));
-    });
-
-// Debug connection
-window.Echo.connector.pusher.connection.bind('connected', () => {
-    console.log('✅ Connected to Reverb');
+// Agenda updates (existing realtime)
+window.Echo.channel('agenda-updates').listen('.AgendaUpdated', (e) => {
+    dispatchBrowserEvent('agenda-updated', e);
+    dispatchBrowserEvent('tv-refresh', { section: 'agenda', action: 'changed', payload: e });
 });
 
-window.Echo.connector.pusher.connection.bind('error', (err) => {
-    console.error('❌ Reverb Connection Error:', err);
+// Generic "refresh TV" signal (profil/video/runningtext/admin/etc)
+window.Echo.channel('tv-updates').listen('.TvRefreshRequested', (e) => {
+    dispatchBrowserEvent('tv-refresh', e);
 });
 
-window.Echo.connector.pusher.connection.bind('disconnected', () => {
-    console.warn('⚠️ Disconnected from Reverb');
-});
+// Optional debug logs
+const connection = window.Echo?.connector?.pusher?.connection;
+if (connection?.bind) {
+    connection.bind('connected', () => console.log('[reverb] connected'));
+    connection.bind('error', (err) => console.error('[reverb] error', err));
+    connection.bind('disconnected', () => console.warn('[reverb] disconnected'));
+}
+

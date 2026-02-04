@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tb_kegiatan', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->bigIncrements('kegiatan_id');
+            $table->date('tanggal_kegiatan');
+            $table->time('jam')->nullable();
+            $table->string('nama_kegiatan', 255);
+            $table->string('tempat', 255)->nullable();
+            $table->string('disposisi', 255)->nullable();
+            $table->text('keterangan')->nullable();
         });
     }
 

@@ -1,29 +1,42 @@
-/*.. CLOCK ..*/
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('id-ID', {
+// TV page JS is loaded as an ES module via Vite. In module scope, globals like
+// `bootstrap` are not guaranteed to exist as identifiers, so use `window.bootstrap`.
+document.addEventListener('DOMContentLoaded', () => {
+    /*.. CLOCK ..*/
+    function updateClock() {
+        const el = document.getElementById('timeText');
+        if (!el) return;
+
+        const now = new Date();
+        const timeString = now
+            .toLocaleTimeString('id-ID', {
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
-                hour12: false
-            }).replace(/\./g, ':');
+                hour12: false,
+            })
+            .replace(/\./g, ':');
 
-            document.getElementById('timeText').textContent = timeString;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+        el.textContent = timeString;
+    }
 
-    /*.. CAROUSEL ..*/
-        document.addEventListener("DOMContentLoaded", () => {
-            const carouselElement = document.querySelector('#carouselPimpinan');
-            if (carouselElement) {
-                const carousel = new bootstrap.Carousel(carouselElement, {
-                    interval: 10000,
-                    ride: 'carousel',
-                    wrap: true
-                });
-            }
-        });
+    updateClock();
+    setInterval(updateClock, 1000);
+});
+
+/*.. CAROUSEL ..*/
+document.addEventListener('DOMContentLoaded', () => {
+    const carouselElement = document.querySelector('#carouselPimpinan');
+    const bs = window.bootstrap;
+
+    if (!carouselElement || !bs?.Carousel) return;
+
+    // eslint-disable-next-line no-new
+    new bs.Carousel(carouselElement, {
+        interval: 10000,
+        ride: 'carousel',
+        wrap: true,
+    });
+});
 
     /*.. VIDEO LOOP ..*/
         (function() {
@@ -190,15 +203,14 @@ if (pages.length > 1) {
     /*.. RUNNING TEXT ..*/
         (function() {
             const raw = window.TV_DATA?.runningtext || [];
-
-            if (!raw.length) return;
-
-            // Gabungkan semua text dengan separator |
-            const mergedText = raw.join(' | ');
+            const cleaned = raw
+                .map(v => String(v ?? '').trim())
+                .filter(Boolean);
 
             const el = document.getElementById('runningText');
             if (!el) return;
 
+            const mergedText = cleaned.length ? cleaned.join(' | ') : '-';
             el.textContent = mergedText;
 
             // Jalankan animasi sekali terus looping via CSS animation
@@ -222,4 +234,20 @@ window.addEventListener('agenda-updated', () => {
         console.log('🔄 TV reload after delay');
         location.reload();
     }, DELAY);
+});
+
+// Generic TV refresh signal (profil/video/runningtext/admin/etc).
+// Also used by agenda via resources/js/app.js.
+let tvRefreshTimer = null;
+const TV_REFRESH_DELAY_MS = 60000; // 1 menit
+
+window.addEventListener('tv-refresh', () => {
+    console.log('📡 Update incoming → start 1 min timer');
+
+    if (tvRefreshTimer) clearTimeout(tvRefreshTimer);
+
+    tvRefreshTimer = setTimeout(() => {
+        console.log('🔄 TV reload after 1 min delay');
+        location.reload();
+    }, TV_REFRESH_DELAY_MS);
 });

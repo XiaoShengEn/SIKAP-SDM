@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class WelcomeController extends Controller
@@ -33,10 +31,11 @@ class WelcomeController extends Controller
             ->pluck('isi_text')
             ->toArray();
 
-        //  ultah dari API 
+        //  ultah dari API
         $ultahText = DB::table('birthday_today')
             ->pluck('nama')
-            ->map(fn($n) => "🎉 Selamat Berulang Tahun : $n 🎉")
+            ->filter(fn ($n) => $n !== null && trim($n) !== '')
+            ->map(fn ($n) => "🎉Selamat Berulang Tahun: $n 🎉")
             ->toArray();
 
         if (count($ultahText) === 0) {
@@ -45,6 +44,10 @@ class WelcomeController extends Controller
 
         // gabungkan dengan running text lain
         $runningtext = array_merge($ultahText, $runningtext);
+
+        if (count($runningtext) === 0) {
+            $runningtext = ['-'];
+        }
 
         return view('welcome', compact(
             'profil',

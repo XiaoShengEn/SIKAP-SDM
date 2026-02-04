@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tb_profil', function (Blueprint $table) {
-            $table->id();
+            $table->bigIncrements('id_profil');
+            $table->string('nama_pimpinan', 100);
+            $table->string('jabatan_pimpinan', 100);
+            $table->string('foto_pimpinan', 256)->nullable();
             $table->timestamps();
         });
     }
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pimpinans');
+        Schema::dropIfExists('tb_profil');
     }
 };

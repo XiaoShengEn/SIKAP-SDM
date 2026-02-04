@@ -238,6 +238,12 @@ formEdit.addEventListener("submit", async function (e) {
         edit_disposisi.value = k.disposisi || "";
         edit_keterangan.value = k.keterangan || "";
 
+        // Ensure maxlength counters refresh after programmatic value changes.
+        [edit_nama, edit_tempat, edit_disposisi, edit_keterangan].forEach((el) => {
+            if (!el) return;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+
         new bootstrap.Modal(modalEditAgenda).show();
     }
 
@@ -258,6 +264,34 @@ formEdit.addEventListener("submit", async function (e) {
 
     /* ================= INIT ================= */
     loadKegiatan(1);
+
+    /* ================= MAXLENGTH COUNTER (ADMIN AGENDA) ================= */
+    document.querySelectorAll('input[maxlength], textarea[maxlength]').forEach((input) => {
+        if (input.dataset.counterBound === '1') return;
+        input.dataset.counterBound = '1';
+
+        const max = parseInt(input.getAttribute('maxlength'), 10);
+        if (!Number.isFinite(max) || max <= 0) return;
+
+        const counter = document.createElement('small');
+        counter.className = 'text-muted d-block text-start counter-tight';
+
+        const inputGroup = input.closest('.input-group');
+        if (inputGroup) {
+            inputGroup.after(counter);
+        } else {
+            input.after(counter);
+        }
+
+        function updateCounter() {
+            const length = (input.value || '').length;
+            counter.innerText = `${length}/${max} karakter`;
+            counter.style.color = length >= max ? 'red' : '';
+        }
+
+        input.addEventListener('input', updateCounter);
+        updateCounter();
+    });
 });
 
 /* AUTO LOGOUT ADMIN */

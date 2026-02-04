@@ -186,7 +186,7 @@
         <div class="running-text-container mt-2 tv-running-text">
             <div id="runningContainer">
                 <span id="runningText">
-                    {{ implode(' | ', $runningtext) }}
+                    {{ count($runningtext ?? []) ? implode(' | ', $runningtext) : '-' }}
                 </span>
             </div>
         </div>
@@ -195,13 +195,13 @@
 
     <!-- ✅ OVERLAY TRANSPARAN (tangkep 1x klik/tap/OK) -->
     <div id="unlockAudio"
-        style="position:fixed; inset:0; z-index:9999; background:transparent;"></div>
+        style="position:fixed; inset:0; z-index:9999; background:transparent; pointer-events:none;"></div>
 
     <!-- JS -->
     <script>
         window.TV_DATA = {
             playlist: @json($playlist ?? []),
-            runningtext: @json($runningtext ?? []),
+            runningtext: @json(count($runningtext ?? []) ? $runningtext : ['-']),
         };
     </script>
 
@@ -210,6 +210,34 @@
     <script src="{{ asset('welcome.js') }}"></script> --}}
 
     @vite(['resources/js/app.js', 'resources/js/welcome.js'])
+
+    <script>
+        // Fallback clock/date updater (keeps working even if Vite modules fail to load).
+        (function () {
+            const dateEl = document.getElementById('dateText');
+            const timeEl = document.getElementById('timeText');
+
+            const dateFmt = new Intl.DateTimeFormat('id-ID', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+            });
+
+            function tick() {
+                const now = new Date();
+                if (dateEl) dateEl.textContent = dateFmt.format(now);
+                if (timeEl) {
+                    timeEl.textContent = now
+                        .toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+                        .replace(/\./g, ':');
+                }
+            }
+
+            tick();
+            setInterval(tick, 1000);
+        })();
+    </script>
     
 </body>
 

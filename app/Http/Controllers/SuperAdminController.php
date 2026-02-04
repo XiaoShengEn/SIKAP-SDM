@@ -14,6 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
 use App\Events\AgendaUpdated;
+use App\Events\TvRefreshRequested;
 
 
 class SuperAdminController extends Controller
@@ -68,6 +69,8 @@ class SuperAdminController extends Controller
             'foto_pimpinan'    => $namaFile
         ]);
 
+        event(new TvRefreshRequested('profil', 'created'));
+
         return back()->withFragment('profil')->with('success', 'Profil pimpinan berhasil ditambahkan!');
     }
 
@@ -101,6 +104,8 @@ class SuperAdminController extends Controller
             'foto_pimpinan'    => $fotoLama
         ]);
 
+        event(new TvRefreshRequested('profil', 'updated', (int) $id));
+
         return back()->withFragment('profil')->with('success', 'Profil berhasil diperbarui!');
     }
 
@@ -114,6 +119,8 @@ class SuperAdminController extends Controller
         }
 
         DB::table('tb_profil')->where('id_profil', $id)->delete();
+
+        event(new TvRefreshRequested('profil', 'deleted', (int) $id));
 
         return back()->withFragment('profil')->with('success', 'Profil berhasil dihapus!');
     }
@@ -136,6 +143,8 @@ class SuperAdminController extends Controller
             'video_kegiatan'   => $namaFile,
             'video_keterangan' => $request->video_keterangan
         ]);
+
+        event(new TvRefreshRequested('video', 'created'));
 
         return back()->withFragment('video')->with('success', 'Video berhasil diupload!');
     }
@@ -164,6 +173,8 @@ class SuperAdminController extends Controller
             'video_keterangan' => $request->video_keterangan
         ]);
 
+        event(new TvRefreshRequested('video', 'updated', (int) $id));
+
         return back()->withFragment('video')->with('success', 'Video berhasil diperbarui!');
     }
 
@@ -175,6 +186,8 @@ class SuperAdminController extends Controller
         if (file_exists($path)) unlink($path);
 
         $video->delete();
+
+        event(new TvRefreshRequested('video', 'deleted', (int) $id));
 
         return back()->withFragment('video')->with('success', 'Video berhasil dihapus!');
     }
@@ -213,6 +226,7 @@ class SuperAdminController extends Controller
     $agenda = Kegiatan::create($request->all());
 
     event(new AgendaUpdated($agenda));
+    event(new TvRefreshRequested('agenda', 'created', (int) $agenda->kegiatan_id));
 
     return response()->json(['success' => true]);
 }
@@ -243,6 +257,7 @@ class SuperAdminController extends Controller
 
         // 🔴 BROADCAST REALTIME
         event(new AgendaUpdated($kegiatan));
+        event(new TvRefreshRequested('agenda', 'updated', (int) $id));
 
         return response()->json([
             'success' => true,
@@ -302,6 +317,7 @@ public function kegiatanTable()
 
         // 🔴 BROADCAST REALTIME
         event(new AgendaUpdated($agenda));
+        event(new TvRefreshRequested('agenda', 'deleted', (int) $id));
 
         return response()->json([
             'success' => true,
@@ -324,6 +340,8 @@ public function kegiatanTable()
             'isi_text' => $request->isi_text,
         ]);
 
+        event(new TvRefreshRequested('runningtext', 'created'));
+
         return back()->withFragment('runningtext')->with('success', 'Running text berhasil ditambahkan!');
     }
 
@@ -337,12 +355,16 @@ public function kegiatanTable()
             'isi_text' => $request->isi_text,
         ]);
 
+        event(new TvRefreshRequested('runningtext', 'updated', (int) $id));
+
         return back()->withFragment('runningtext')->with('success', 'Running text berhasil diperbarui!');
     }
 
     public function runningtextDelete($id)
     {
         RunningText::where('id_text', $id)->delete();
+
+        event(new TvRefreshRequested('runningtext', 'deleted', (int) $id));
 
         return back()->withFragment('runningtext')->with('success', 'Running text berhasil dihapus!');
     }
@@ -387,6 +409,8 @@ public function kegiatanTable()
                 'password_admin' => Hash::make($request->password_admin),
             ]);
 
+            event(new TvRefreshRequested('admin', 'created'));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Admin berhasil ditambahkan'
@@ -429,6 +453,8 @@ public function kegiatanTable()
 
             $admin->save();
 
+            event(new TvRefreshRequested('admin', 'updated', (int) $id));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Admin berhasil diperbarui'
@@ -447,6 +473,8 @@ public function kegiatanTable()
     public function normalAdminDelete($id)
     {
         User::where('id_admin', $id)->delete();
+
+        event(new TvRefreshRequested('admin', 'deleted', (int) $id));
 
         return response()->json([
             'success' => true,

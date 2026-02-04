@@ -887,6 +887,7 @@
                                             <input type="text"
                                                 name="nama_admin"
                                                 class="form-control"
+                                                maxlength="50"
                                                 required>
                                         </div>
 
@@ -896,6 +897,7 @@
                                             <input type="text"
                                                 name="bagian"
                                                 class="form-control"
+                                                maxlength="50"
                                                 required>
                                         </div>
 
@@ -908,6 +910,7 @@
                                                     id="password_admin_modal"
                                                     class="form-control"
                                                     minlength="8"
+                                                    maxlength="20"
                                                     required>
 
                                                 <button type="button"
@@ -927,6 +930,7 @@
                                                     id="password_admin_confirm_modal"
                                                     class="form-control"
                                                     minlength="8"
+                                                    maxlength="20"
                                                     required>
 
                                                 <button type="button"
@@ -1247,17 +1251,18 @@
                                     <input type="text" name="nip" id="edit_nip" class="form-control" maxlength="18" required>
 
                                     <label class="form-label fw-bold mt-2">Nama Admin</label>
-                                    <input type="text" name="nama_admin" id="edit_nama_admin" class="form-control">
+                                    <input type="text" name="nama_admin" id="edit_nama_admin" class="form-control" maxlength="50">
 
                                     <label class="form-label fw-bold mt-2">Bagian</label>
-                                    <input type="text" name="bagian" id="edit_bagian" class="form-control">
+                                    <input type="text" name="bagian" id="edit_bagian" class="form-control" maxlength="50">
 
                                     <label class="form-label fw-bold mt-2">Password (opsional)</label>
                                     <div class="input-group">
                                         <input type="password"
                                             name="password_admin"
                                             id="edit_password_admin"
-                                            class="form-control">
+                                            class="form-control"
+                                            maxlength="20">
 
                                         <button type="button"
                                             class="btn btn-outline-secondary password-toggle"
@@ -1271,7 +1276,8 @@
                                         <input type="password"
                                             name="password_admin_confirmation"
                                             id="edit_password_admin_confirmation"
-                                            class="form-control">
+                                            class="form-control"
+                                            maxlength="20">
 
                                         <button type="button"
                                             class="btn btn-outline-secondary password-toggle"
@@ -1302,8 +1308,8 @@
         @csrf
     </form>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('superad.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>    
 
 </body>
 

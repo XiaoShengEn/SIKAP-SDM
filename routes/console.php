@@ -9,4 +9,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('kemendagri:fetch-birthday')->dailyAt('00:05');
+Schedule::command('kemendagri:fetch-birthday')
+    ->dailyAt('00:05')
+    ->timezone('Asia/Jakarta');

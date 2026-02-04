@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tb_admin', function (Blueprint $table) {
-            $table->string('nip', 18)->nullable()->after('nama_admin');
-        });
+        if (!Schema::hasColumn('tb_admin', 'nip')) {
+            Schema::table('tb_admin', function (Blueprint $table) {
+                $table->string('nip', 18)->nullable()->after('nama_admin');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('tb_admin', function (Blueprint $table) {
-            $table->dropColumn('nip');
-        });
+        if (Schema::hasColumn('tb_admin', 'nip')) {
+            Schema::table('tb_admin', function (Blueprint $table) {
+                $table->dropColumn('nip');
+            });
+        }
     }
 };

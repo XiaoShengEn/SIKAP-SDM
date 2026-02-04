@@ -8,21 +8,35 @@ use Carbon\Carbon;
 
 class TokenService
 {
-    public static function getToken()
+    public static function getToken(bool $forceRefresh = false)
     {
-        $row = DB::table('api_tokens')
-            ->where('service', 'kemendagri')
-            ->first();
+        if (! $forceRefresh) {
+            $row = DB::table('api_tokens')
+                ->where('service', 'kemendagri')
+                ->first();
 
-        if ($row && Carbon::now()->lt($row->expired_at)) {
-            return $row->access_token;
+            if ($row && Carbon::now()->lt($row->expired_at)) {
+                return $row->access_token;
+            }
+        }
+
+        $verifySsl = filter_var(env('KEMENDAGRI_API_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN);
+        $baseUrl = rtrim(config('services.kemendagri.url') ?? 'https://apimanager-ropeg.kemendagri.go.id', '/');
+
+        $username = trim((string) env('KEMENDAGRI_API_USER', ''));
+        $password = trim((string) env('KEMENDAGRI_API_PASS', ''));
+
+        if ($username === '' || $password === '') {
+            throw new \Exception('Kredensial Kemendagri kosong.');
         }
 
         $response = Http::asForm()
-            ->withOptions(['verify' => false]) // SSL lokal bypass
-            ->post('https://apimanager-ropeg.kemendagri.go.id/api/token', [
-                'username' => env('KEMENDAGRI_API_USER'),
-                'password' => env('KEMENDAGRI_API_PASS'),
+            ->withOptions(['verify' => $verifySsl])
+            ->timeout(15)
+            ->retry(3, 1000)
+            ->post($baseUrl . '/api/token', [
+                'username' => $username,
+                'password' => $password,
             ]);
 
         if (! $response->successful()) {
@@ -32,7 +46,8 @@ class TokenService
         $data = $response->json();
 
         if (!isset($data['access_token'])) {
-            throw new \Exception('Token tidak ditemukan: ' . json_encode($data));
+            $message = $data['message'] ?? 'Token tidak ditemukan';
+            throw new \Exception($message . ': ' . json_encode($data));
         }
 
         $expiredAt = Carbon::now()->addHours(23);
