@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SIKAP SDM – Agenda Kegiatan Pimpinan Biro SDM</title>
 
     <!-- BOOTSTRAP + ICON -->
@@ -19,11 +19,11 @@
     <link rel="stylesheet" href="{{ asset('welcome.css') }}">
 </head>
 
-<body class="tv-32">
+<body>
 
-    <div class="container py-3">
+    <div class="container-fluid">
 
-        <div class="page-header mb-4 header-grid align-items-center">
+        <div class="page-header mb-4 header-grid align-items-center gap-2">
 
             <!-- TANGGAL -->
             <div id="dateDisplay" class="fw-bold fs-3 text-white px-4 py-2 rounded shadow-sm">
@@ -44,7 +44,7 @@
 
         </div>
 
-        <div class="row tv-content-row mt-2 gx-1">
+        <div class="row content-row">
 
             <!-- PROFIL -->
             <div class="col-12 col-md-6">
@@ -91,9 +91,9 @@
             </div>
 
             <!-- VIDEO -->
-            <div class="col-12 col-md-6 tv-col">
+            <div class="col-12 col-md-6 content-col">
                 <!-- FIX: hapus h-100 -->
-                <div class="card modern-card tv-card">
+                <div class="card modern-card content-card">
                     <div class="card-header bg-primary text-white modern-card-header">
                         <h5 class="mb-0">
                             <i class="fas fa-video me-2"></i> Video Kegiatan
@@ -101,7 +101,7 @@
                     </div>
 
                     <!-- FIX: tv-card-body biar video bisa gede ngisi -->
-                    <div class="card-body tv-card-body">
+                    <div class="card-body content-card-body">
                         <div class="video-wrapper">
                             <video id="vidA" class="video-player" autoplay playsinline muted></video>
                             <video id="vidB" class="video-player" autoplay playsinline muted></video>
@@ -109,11 +109,10 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
         <!-- AGENDA (NO CRUD) -->
-        <div class="card modern-card mt-4 tv-agenda-card">
+        <div class="card modern-card mt-4 agenda-card">
             <div class="card-header bg-primary text-white modern-card-header">
                 <h5>
                     <i class="fas fa-calendar-check me-2"></i> Agenda Biro SDM
@@ -122,7 +121,7 @@
 
             <div class="card-body py-1">
                 <!-- PAKAI WRAPPER ADMIN + TV MODE -->
-                <div class="admin-table-wrapper agenda-scroll-container tv-mode" id="agendaScroll">
+                <div class="admin-table-wrapper agenda-scroll-container" id="agendaScroll">
                     <table class="table table-hover mb-0 py">
                         <thead class="sticky-thead-admin">
                             <tr>
@@ -213,7 +212,7 @@
 
     <script>
         // Fallback clock/date updater (keeps working even if Vite modules fail to load).
-        (function () {
+        (function() {
             const dateEl = document.getElementById('dateText');
             const timeEl = document.getElementById('timeText');
 
@@ -229,7 +228,12 @@
                 if (dateEl) dateEl.textContent = dateFmt.format(now);
                 if (timeEl) {
                     timeEl.textContent = now
-                        .toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+                        .toLocaleTimeString('id-ID', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                        })
                         .replace(/\./g, ':');
                 }
             }
@@ -238,7 +242,7 @@
             setInterval(tick, 1000);
         })();
     </script>
-    
+
 </body>
 
 </html>
