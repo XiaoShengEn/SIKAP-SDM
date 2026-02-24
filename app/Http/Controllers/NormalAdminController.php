@@ -2,14 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use App\Models\Kegiatan;
 use App\Events\AgendaUpdated;
+use App\Models\Kegiatan;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class NormalAdminController extends Controller
 {
+    private function bumpTvCacheVersion(): void
+    {
+        if (!Cache::add('tv:data:version', 1)) {
+            Cache::increment('tv:data:version');
+        }
+    }
+
+    private function bumpAgendaListCacheVersion(): void
+    {
+        if (!Cache::add('agenda:list:version', 1)) {
+            Cache::increment('agenda:list:version');
+        }
+    }
+
     // ===============================
     // INDEX (Halaman Normal Admin)
     // ===============================
@@ -24,28 +38,35 @@ class NormalAdminController extends Controller
     // ===============================
     // AJAX LIST dengan PAGINATION & SORTING
     // ===============================
-public function list(Request $request)
-{
-    $perPage = 5;
+    public function list(Request $request)
+    {
+        $perPage = 5;
+        $page = max((int) $request->query('page', 1), 1);
+        $version = (int) Cache::get('agenda:list:version', 1);
+        $cacheKey = "agenda:list:v{$version}:p{$page}:pp{$perPage}";
 
-    $data = Kegiatan::agendaOrder()->paginate($perPage);
+        $payload = Cache::remember($cacheKey, 30, function () use ($perPage, $page) {
+            $data = Kegiatan::agendaOrder()->paginate($perPage, ['*'], 'page', $page);
 
-    $data->getCollection()->transform(function ($k) {
-        return [
-            'id' => $k->kegiatan_id,
-            'tanggal_kegiatan' => $k->tanggal_kegiatan,
-            'tanggal_label' => \Carbon\Carbon::parse($k->tanggal_kegiatan)
-                ->translatedFormat('l, d F Y'),
-            'jam' => $k->jam,
-            'nama_kegiatan' => $k->nama_kegiatan,
-            'tempat' => $k->tempat,
-            'disposisi' => $k->disposisi,
-            'keterangan' => $k->keterangan,
-        ];
-    });
+            $data->getCollection()->transform(function ($k) {
+                return [
+                    'id' => $k->kegiatan_id,
+                    'tanggal_kegiatan' => $k->tanggal_kegiatan,
+                    'tanggal_label' => Carbon::parse($k->tanggal_kegiatan)
+                        ->translatedFormat('l, d F Y'),
+                    'jam' => $k->jam,
+                    'nama_kegiatan' => $k->nama_kegiatan,
+                    'tempat' => $k->tempat,
+                    'disposisi' => $k->disposisi,
+                    'keterangan' => $k->keterangan,
+                ];
+            });
 
-    return response()->json($data);
-}
+            return $data->toArray();
+        });
+
+        return response()->json($payload);
+    }
 
     // ===============================
     // DETAIL KEGIATAN
@@ -88,7 +109,8 @@ public function list(Request $request)
             'keterangan' => $request->keterangan,
         ]);
 
-        // 🔴 BROADCAST REALTIME
+        $this->bumpTvCacheVersion();
+        $this->bumpAgendaListCacheVersion();
         event(new AgendaUpdated($agenda));
 
         return response()->json([
@@ -100,7 +122,7 @@ public function list(Request $request)
     // ===============================
     // UPDATE KEGIATAN
     // ===============================
-     public function kegiatanUpdate(Request $request, $id)
+    public function kegiatanUpdate(Request $request, $id)
     {
         $request->validate([
             'tanggal_kegiatan' => 'required|date',
@@ -122,7 +144,8 @@ public function list(Request $request)
             'keterangan' => $request->keterangan,
         ]);
 
-        // 🔴 BROADCAST REALTIME
+        $this->bumpTvCacheVersion();
+        $this->bumpAgendaListCacheVersion();
         event(new AgendaUpdated($kegiatan));
 
         return response()->json([
@@ -140,7 +163,8 @@ public function list(Request $request)
 
         $agenda->delete();
 
-        // 🔴 BROADCAST REALTIME
+        $this->bumpTvCacheVersion();
+        $this->bumpAgendaListCacheVersion();
         event(new AgendaUpdated($agenda));
 
         return response()->json([

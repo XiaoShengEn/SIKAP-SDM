@@ -15,8 +15,15 @@ fi
 
 # Ensure upload directories exist and are writable by PHP-FPM.
 chown -R www-data:www-data /var/www/html/public || true
-mkdir -p /var/www/html/public/uploads/profil /var/www/html/public/videos
-chown -R www-data:www-data /var/www/html/public/uploads /var/www/html/public/videos
-chmod -R 775 /var/www/html/public/uploads /var/www/html/public/videos
+# App writable dirs (storage + cache + uploads)
+mkdir -p /var/www/html/storage/framework/views \
+  /var/www/html/storage/framework/cache/data \
+  /var/www/html/storage/framework/sessions \
+  /var/www/html/storage/logs \
+  /var/www/html/public/uploads/profil \
+  /var/www/html/public/videos
+
+chown -R www-data:www-data /var/www/html/storage /var/www/html/public/uploads /var/www/html/public/videos
+chmod -R 775 /var/www/html/storage /var/www/html/public/uploads /var/www/html/public/videos
 
 exec "$@"

@@ -48,7 +48,13 @@ RUN rm -f /var/www/html/public/hot
 # Copy PHP config
 COPY docker/php/local.ini /usr/local/etc/php/conf.d/local.ini
 
-RUN chown -R www-data:www-data storage bootstrap/cache
+RUN mkdir -p \
+    storage/framework/views \
+    storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/logs \
+    bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
 # Entrypoint to remove Vite dev "hot" file in production containers
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh

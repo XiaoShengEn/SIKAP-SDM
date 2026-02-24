@@ -34,6 +34,40 @@ Smooth scroll saat klik menu
 
     const sidebarItems = document.querySelectorAll('.sidebar-item');
 
+    function smoothScrollToY(targetY, duration = 600) {
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReduced) {
+            window.scrollTo(0, targetY);
+            return;
+        }
+
+        const startY = window.scrollY || window.pageYOffset;
+        const diff = targetY - startY;
+        const start = performance.now();
+
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        function step(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeInOutCubic(progress);
+            window.scrollTo(0, startY + diff * eased);
+            if (progress < 1) requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(step);
+    }
+
+    function smoothScrollToSection(section, offset = 100, delayMs = 250) {
+        if (!section) return;
+        setTimeout(() => {
+            const y = section.getBoundingClientRect().top + window.pageYOffset - offset;
+            smoothScrollToY(y, 650);
+        }, delayMs);
+    }
+
     sidebarItems.forEach(item => {
         item.addEventListener('click', function (e) {
             const targetId = this.getAttribute('href');
@@ -69,12 +103,7 @@ Smooth scroll saat klik menu
                             localStorage.setItem("open-section", collapseBody.id);
                         }
                         // ✅ AUTO SCROLL (SETELAH TOGGLE)
-                        setTimeout(() => {
-                            window.scrollTo({
-                                top: targetSection.offsetTop - 100,
-                                behavior: 'smooth'
-                            });
-                        }, 250); // nunggu animasi bootstrap
+                        smoothScrollToSection(targetSection, 100, 250); // nunggu animasi bootstrap
                     }
 
                 }
@@ -163,13 +192,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (section) {
                 setTimeout(() => {
-                    const yOffset = -90;
-                    const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-                    window.scrollTo({
-                        top: y,
-                        behavior: "smooth"
-                    });
+                    const y = section.getBoundingClientRect().top + window.pageYOffset - 90;
+                    smoothScrollToY(y, 700);
                 }, 450);
             }
 
@@ -497,14 +521,9 @@ document.querySelectorAll('.modern-card-header').forEach(header => {
         // === Auto Scroll kayak sidebar ===
         if (section) {
             setTimeout(() => {
-                const yOffset = -90;
-                const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-                window.scrollTo({
-                    top: y,
-                    behavior: 'smooth'
-                });
-            }, 200);
+                const y = section.getBoundingClientRect().top + window.pageYOffset - 90;
+                smoothScrollToY(y, 650);
+            }, 220);
         }
     });
 });
@@ -577,6 +596,22 @@ document.addEventListener("DOMContentLoaded", function () {
         return document.querySelector('meta[name="csrf-token"]').content;
     }
 
+    async function parseJsonSafe(res) {
+        const contentType = res.headers.get("content-type") || "";
+        const rawText = await res.text();
+
+        if (!contentType.includes("application/json")) {
+            const snippet = rawText.slice(0, 200).trim();
+            throw new Error(`Server mengembalikan non-JSON (${res.status}). ${snippet || "Tidak ada detail error."}`);
+        }
+
+        try {
+            return JSON.parse(rawText);
+        } catch {
+            throw new Error(`Response JSON tidak valid (${res.status}).`);
+        }
+    }
+
     /* ===== WARNA TANGGAL BERDASARKAN HARI ===== */
     function getTanggalClass(tanggalStr) {
         const today = new Date();
@@ -617,7 +652,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const res = await fetch(`/kegiatan/list?page=${page}`)
             if (!res.ok) throw new Error("HTTP " + res.status);
 
-            const result = await res.json();
+            const result = await parseJsonSafe(res);
             const data = result.data || [];
             const total = result.total || 0;
 
@@ -744,7 +779,7 @@ if (nextBtn) {
                     body: formData
                 });
 
-                const result = await res.json();
+                const result = await parseJsonSafe(res);
 
                 if (!res.ok || !result.success) {
                     throw new Error(result.message || "Gagal menambahkan agenda");
@@ -784,7 +819,7 @@ if (nextBtn) {
                     const res = await fetch(`/superadmin/kegiatan/${id}`);
                     if (!res.ok) throw new Error("Gagal mengambil data");
 
-                    const k = await res.json();
+                    const k = await parseJsonSafe(res);
 
                     // Fill form
                     edit_id.value = k.kegiatan_id;
@@ -820,7 +855,7 @@ if (nextBtn) {
                         }
                     });
 
-                    const result = await res.json();
+                    const result = await parseJsonSafe(res);
 
                     if (!res.ok || !result.success) {
                         throw new Error("Gagal menghapus agenda");
@@ -854,7 +889,7 @@ if (nextBtn) {
                     body: formData
                 });
 
-                const result = await res.json();
+                const result = await parseJsonSafe(res);
 
                 if (!res.ok || !result.success) {
                     throw new Error(result.message || "Gagal mengupdate agenda");
@@ -890,7 +925,7 @@ if (nextBtn) {
             const res = await fetch("/superadmin/normaladmin/list");
             if (!res.ok) throw new Error("Gagal load admin");
 
-            const result = await res.json();
+            const result = await parseJsonSafe(res);
             const tbody = document.getElementById("normaladminTbody");
             if (!tbody) return;
 
@@ -909,7 +944,8 @@ if (nextBtn) {
                             data-id="${a.id_admin}"
                             data-nip="${a.nip}"
                             data-nama="${a.nama_admin}"
-                            data-bagian="${a.bagian}">
+                            data-bagian="${a.bagian}"
+                            data-role="${a.role_admin}">
                             <i class="fas fa-edit"></i>
                         </button>
 
@@ -980,7 +1016,7 @@ if (nextBtn) {
                     body: formData
                 });
 
-                const result = await res.json();
+                const result = await parseJsonSafe(res);
                 console.log("RESULT TAMBAH:", result);
 
                 if (res.status === 422) {
@@ -1020,6 +1056,7 @@ if (nextBtn) {
         document.getElementById("edit_nip").value = btn.dataset.nip;
         document.getElementById("edit_nama_admin").value = btn.dataset.nama;
         document.getElementById("edit_bagian").value = btn.dataset.bagian;
+        document.getElementById("edit_role_admin").value = btn.dataset.role || "normaladmin";
 
         bootstrap.Modal.getOrCreateInstance(
             document.getElementById("modalEditNormalAdmin")
@@ -1049,7 +1086,7 @@ if (nextBtn) {
                     body: formData
                 });
 
-                const result = await res.json();
+                const result = await parseJsonSafe(res);
 
                 if (res.status === 422) {
                     showErrors(this, result.errors);
@@ -1093,7 +1130,7 @@ if (nextBtn) {
                 }
             });
 
-            const result = await res.json();
+            const result = await parseJsonSafe(res);
 
             if (!res.ok || !result.success) {
                 alert("Gagal hapus admin!");

@@ -13,12 +13,73 @@ use App\Models\RunningText;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Events\AgendaUpdated;
 use App\Events\TvRefreshRequested;
 
 
 class SuperAdminController extends Controller
 {
+    private function ensurePublicUploadPath(string $relativePath): string
+    {
+        $fullPath = public_path(trim($relativePath, '/'));
+
+        if (!File::exists($fullPath)) {
+            File::makeDirectory($fullPath, 0775, true);
+        }
+
+        if (!is_writable($fullPath)) {
+            throw new \RuntimeException("Directory upload tidak writable: {$fullPath}");
+        }
+
+        return $fullPath;
+    }
+
+    private function safeBroadcast(string $section, string $action = 'changed', ?int $id = null): void
+    {
+        try {
+            event(new TvRefreshRequested($section, $action, $id));
+        } catch (\Throwable $e) {
+            Log::warning('TvRefreshRequested broadcast skipped', [
+                'section' => $section,
+                'action' => $action,
+                'id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function safeAgendaBroadcast($agenda, string $action, ?int $id = null): void
+    {
+        try {
+            event(new AgendaUpdated($agenda));
+        } catch (\Throwable $e) {
+            Log::warning('AgendaUpdated broadcast skipped', [
+                'action' => $action,
+                'id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        $this->safeBroadcast('agenda', $action, $id);
+    }
+
+    private function bumpTvCacheVersion(): void
+    {
+        if (!Cache::add('tv:data:version', 1)) {
+            Cache::increment('tv:data:version');
+        }
+    }
+
+    private function bumpAgendaListCacheVersion(): void
+    {
+        if (!Cache::add('agenda:list:version', 1)) {
+            Cache::increment('agenda:list:version');
+        }
+    }
+
     // ============================================================
     // DASHBOARD SUPERADMIN
     // ============================================================
@@ -61,7 +122,8 @@ class SuperAdminController extends Controller
 
         $file = $request->file('foto_pimpinan');
         $namaFile = time() . '_' . $file->getClientOriginalName();
-        $file->move(public_path('uploads/profil'), $namaFile);
+        $uploadPath = $this->ensurePublicUploadPath('uploads/profil');
+        $file->move($uploadPath, $namaFile);
 
         DB::table('tb_profil')->insert([
             'nama_pimpinan'    => $request->nama_pimpinan,
@@ -69,7 +131,8 @@ class SuperAdminController extends Controller
             'foto_pimpinan'    => $namaFile
         ]);
 
-        event(new TvRefreshRequested('profil', 'created'));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('profil', 'created');
 
         return back()->withFragment('profil')->with('success', 'Profil pimpinan berhasil ditambahkan!');
     }
@@ -93,7 +156,8 @@ class SuperAdminController extends Controller
 
             $file = $request->file('foto_pimpinan');
             $namaFile = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/profil'), $namaFile);
+            $uploadPath = $this->ensurePublicUploadPath('uploads/profil');
+            $file->move($uploadPath, $namaFile);
 
             $fotoLama = $namaFile;
         }
@@ -104,7 +168,8 @@ class SuperAdminController extends Controller
             'foto_pimpinan'    => $fotoLama
         ]);
 
-        event(new TvRefreshRequested('profil', 'updated', (int) $id));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('profil', 'updated', (int) $id);
 
         return back()->withFragment('profil')->with('success', 'Profil berhasil diperbarui!');
     }
@@ -120,7 +185,8 @@ class SuperAdminController extends Controller
 
         DB::table('tb_profil')->where('id_profil', $id)->delete();
 
-        event(new TvRefreshRequested('profil', 'deleted', (int) $id));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('profil', 'deleted', (int) $id);
 
         return back()->withFragment('profil')->with('success', 'Profil berhasil dihapus!');
     }
@@ -131,20 +197,22 @@ class SuperAdminController extends Controller
     public function videoStore(Request $request)
     {
         $request->validate([
-            'video_kegiatan'   => 'required|file|mimes:mp4,mov,avi|max:50000',
+            'video_kegiatan'   => 'required|file|mimes:mp4,mov,avi|max:102400',
             'video_keterangan' => 'required|string'
         ]);
 
         $file = $request->file('video_kegiatan');
         $namaFile = time() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('videos'), $namaFile);
+        $uploadPath = $this->ensurePublicUploadPath('videos');
+        $file->move($uploadPath, $namaFile);
 
         Video::create([
             'video_kegiatan'   => $namaFile,
             'video_keterangan' => $request->video_keterangan
         ]);
 
-        event(new TvRefreshRequested('video', 'created'));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('video', 'created');
 
         return back()->withFragment('video')->with('success', 'Video berhasil diupload!');
     }
@@ -152,7 +220,7 @@ class SuperAdminController extends Controller
     public function videoUpdate(Request $request, $id)
     {
         $request->validate([
-            'video_kegiatan'   => 'nullable|file|mimes:mp4,mov,avi|max:50000',
+            'video_kegiatan'   => 'nullable|file|mimes:mp4,mov,avi|max:102400',
             'video_keterangan' => 'required|string'
         ]);
 
@@ -165,7 +233,8 @@ class SuperAdminController extends Controller
 
             $file = $request->file('video_kegiatan');
             $namaFile = time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('videos'), $namaFile);
+            $uploadPath = $this->ensurePublicUploadPath('videos');
+            $file->move($uploadPath, $namaFile);
         }
 
         $video->update([
@@ -173,7 +242,8 @@ class SuperAdminController extends Controller
             'video_keterangan' => $request->video_keterangan
         ]);
 
-        event(new TvRefreshRequested('video', 'updated', (int) $id));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('video', 'updated', (int) $id);
 
         return back()->withFragment('video')->with('success', 'Video berhasil diperbarui!');
     }
@@ -187,7 +257,8 @@ class SuperAdminController extends Controller
 
         $video->delete();
 
-        event(new TvRefreshRequested('video', 'deleted', (int) $id));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('video', 'deleted', (int) $id);
 
         return back()->withFragment('video')->with('success', 'Video berhasil dihapus!');
     }
@@ -225,8 +296,9 @@ class SuperAdminController extends Controller
 
     $agenda = Kegiatan::create($request->all());
 
-    event(new AgendaUpdated($agenda));
-    event(new TvRefreshRequested('agenda', 'created', (int) $agenda->kegiatan_id));
+    $this->bumpTvCacheVersion();
+    $this->bumpAgendaListCacheVersion();
+    $this->safeAgendaBroadcast($agenda, 'created', (int) $agenda->kegiatan_id);
 
     return response()->json(['success' => true]);
 }
@@ -256,8 +328,9 @@ class SuperAdminController extends Controller
         
 
         // 🔴 BROADCAST REALTIME
-        event(new AgendaUpdated($kegiatan));
-        event(new TvRefreshRequested('agenda', 'updated', (int) $id));
+        $this->bumpTvCacheVersion();
+        $this->bumpAgendaListCacheVersion();
+        $this->safeAgendaBroadcast($kegiatan, 'updated', (int) $id);
 
         return response()->json([
             'success' => true,
@@ -316,8 +389,9 @@ public function kegiatanTable()
         $agenda->delete();
 
         // 🔴 BROADCAST REALTIME
-        event(new AgendaUpdated($agenda));
-        event(new TvRefreshRequested('agenda', 'deleted', (int) $id));
+        $this->bumpTvCacheVersion();
+        $this->bumpAgendaListCacheVersion();
+        $this->safeAgendaBroadcast($agenda, 'deleted', (int) $id);
 
         return response()->json([
             'success' => true,
@@ -340,7 +414,8 @@ public function kegiatanTable()
             'isi_text' => $request->isi_text,
         ]);
 
-        event(new TvRefreshRequested('runningtext', 'created'));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('runningtext', 'created');
 
         return back()->withFragment('runningtext')->with('success', 'Running text berhasil ditambahkan!');
     }
@@ -355,7 +430,8 @@ public function kegiatanTable()
             'isi_text' => $request->isi_text,
         ]);
 
-        event(new TvRefreshRequested('runningtext', 'updated', (int) $id));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('runningtext', 'updated', (int) $id);
 
         return back()->withFragment('runningtext')->with('success', 'Running text berhasil diperbarui!');
     }
@@ -364,7 +440,8 @@ public function kegiatanTable()
     {
         RunningText::where('id_text', $id)->delete();
 
-        event(new TvRefreshRequested('runningtext', 'deleted', (int) $id));
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('runningtext', 'deleted', (int) $id);
 
         return back()->withFragment('runningtext')->with('success', 'Running text berhasil dihapus!');
     }
@@ -409,7 +486,7 @@ public function kegiatanTable()
                 'password_admin' => Hash::make($request->password_admin),
             ]);
 
-            event(new TvRefreshRequested('admin', 'created'));
+            $this->safeBroadcast('admin', 'created');
 
             return response()->json([
                 'success' => true,
@@ -432,13 +509,15 @@ public function kegiatanTable()
             $admin = User::where('id_admin', $id)->firstOrFail();
 
             $request->validate([
-                'nama_admin' => 'required|string|max:30|unique:tb_admin,nama_admin,' . $id . ',id_admin',
+                'nama_admin' => 'required|string|max:50|unique:tb_admin,nama_admin,' . $id . ',id_admin',
                 'bagian'     => 'required|string|max:30',
                 'nip'        => 'required|digits:18|unique:tb_admin,nip,' . $id . ',id_admin',
+                'role_admin' => 'required|in:normaladmin,superadmin',
                 'password_admin' => 'nullable|string|min:8|max:20|confirmed',
             ], [
                 'nama_admin.unique' => 'Nama sudah digunakan oleh admin lain.',
                 'nip.unique'        => 'NIP sudah digunakan oleh admin lain.',
+                'role_admin.in'     => 'Role tidak valid.',
                 'password_admin.min' => 'Password minimal 8 karakter.',
                 'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
             ]);
@@ -446,6 +525,7 @@ public function kegiatanTable()
             $admin->nama_admin = $request->nama_admin;
             $admin->bagian     = $request->bagian;
             $admin->nip        = $request->nip;
+            $admin->role_admin = $request->role_admin;
 
             if ($request->filled('password_admin')) {
                 $admin->password_admin = Hash::make($request->password_admin);
@@ -453,7 +533,7 @@ public function kegiatanTable()
 
             $admin->save();
 
-            event(new TvRefreshRequested('admin', 'updated', (int) $id));
+            $this->safeBroadcast('admin', 'updated', (int) $id);
 
             return response()->json([
                 'success' => true,
@@ -474,7 +554,7 @@ public function kegiatanTable()
     {
         User::where('id_admin', $id)->delete();
 
-        event(new TvRefreshRequested('admin', 'deleted', (int) $id));
+        $this->safeBroadcast('admin', 'deleted', (int) $id);
 
         return response()->json([
             'success' => true,

@@ -36,6 +36,7 @@ class FetchBirthdayPegawai extends Command
                     'tanggal'    => $row['tanggal_lahir'] ?? null,
                     'nama'       => $row['nama'] ?? null,
                     'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 

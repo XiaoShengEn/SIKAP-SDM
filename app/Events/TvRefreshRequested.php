@@ -4,7 +4,7 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
@@ -12,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
  * Broadcast a lightweight signal to tell TV clients to refresh their data.
  * We keep it generic so every CRUD action can reuse it.
  */
-class TvRefreshRequested implements ShouldBroadcastNow
+class TvRefreshRequested implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -48,4 +48,3 @@ class TvRefreshRequested implements ShouldBroadcastNow
         ];
     }
 }
-

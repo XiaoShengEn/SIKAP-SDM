@@ -219,35 +219,25 @@ if (pages.length > 1) {
             el.style.animation = "marquee 25s linear infinite";
         })();
 
-/* ================= TV DELAYED UPDATE (DEBOUNCE) ================= */
+/* ================= TV UPDATE (1 MENIT PER PERUBAHAN) ================= */
+let tvReloadTimer = null;
+const TV_REFRESH_DELAY_MS = 60000;
 
-let updateTimer = null;
-const DELAY = 60000; // 1 menit (ubah di sini kalau mau)
+function scheduleTvReload(reason) {
+    if (tvReloadTimer) clearTimeout(tvReloadTimer);
 
-window.addEventListener('agenda-updated', () => {
-    console.log('📡 Agenda update received → start 1 min timer');
-
-    // Kalau timer sudah jalan, abaikan event berikutnya
-    if (updateTimer) return;
-
-    updateTimer = setTimeout(() => {
-        console.log('🔄 TV reload after delay');
-        location.reload();
-    }, DELAY);
-});
-
-// Generic TV refresh signal (profil/video/runningtext/admin/etc).
-// Also used by agenda via resources/js/app.js.
-let tvRefreshTimer = null;
-const TV_REFRESH_DELAY_MS = 60000; // 1 menit
-
-window.addEventListener('tv-refresh', () => {
-    console.log('📡 Update incoming → start 1 min timer');
-
-    if (tvRefreshTimer) clearTimeout(tvRefreshTimer);
-
-    tvRefreshTimer = setTimeout(() => {
-        console.log('🔄 TV reload after 1 min delay');
+    console.log(`[tv-refresh] ${reason} -> reload in ${TV_REFRESH_DELAY_MS}ms`);
+    tvReloadTimer = setTimeout(() => {
+        console.log('[tv-refresh] reload TV now');
         location.reload();
     }, TV_REFRESH_DELAY_MS);
+}
+
+window.addEventListener('agenda-updated', () => {
+    scheduleTvReload('agenda-updated');
+});
+
+window.addEventListener('tv-refresh', (event) => {
+    const section = event?.detail?.section;
+    scheduleTvReload(`section=${section || 'unknown'}`);
 });

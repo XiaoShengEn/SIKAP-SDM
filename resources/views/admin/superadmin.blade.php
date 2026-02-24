@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Super Admin Dashboard - SIKAP SDM</title>
 
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20width%3D%2250%22%20height%3D%2252%22%20viewBox%3D%220%200%2050%2052%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ctitle%3ELogomark%3C%2Ftitle%3E%3Cpath%20d%3D%22M49.626%2011.564a.809.809%200%200%201%20.028.209v10.972a.8.8%200%200%201-.402.694l-9.209%205.302V39.25c0%20.286-.152.55-.4.694L20.42%2051.01c-.044.025-.092.041-.14.058-.018.006-.035.017-.054.022a.805.805%200%200%201-.41%200c-.022-.006-.042-.018-.063-.026-.044-.016-.09-.03-.132-.054L.402%2039.944A.801.801%200%200%201%200%2039.25V6.334c0-.072.01-.142.028-.21.006-.023.02-.044.028-.067.015-.042.029-.085.051-.124.015-.026.037-.047.055-.071.023-.032.044-.065.071-.093.023-.023.053-.04.079-.06.029-.024.055-.05.088-.069h.001l9.61-5.533a.802.802%200%200%201%20.8%200l9.61%205.533h.002c.032.02.059.045.088.068.026.02.055.038.078.06.028.029.048.062.072.094.017.024.04.045.054.071.023.04.036.082.052.124.008.023.022.044.028.068a.809.809%200%200%201%20.028.209v20.559l8.008-4.611v-10.51c0-.07.01-.141.028-.208.007-.024.02-.045.028-.068.016-.042.03-.085.052-.124.015-.026.037-.047.054-.071.024-.032.044-.065.072-.093.023-.023.052-.04.078-.06.03-.024.056-.05.088-.069h.001l9.611-5.533a.801.801%200%200%201%20.8%200l9.61%205.533c.034.02.06.045.09.068.025.02.054.038.077.06.028.029.048.062.072.094.018.024.04.045.054.071.023.039.036.082.052.124.009.023.022.044.028.068zm-1.574%2010.718v-9.124l-3.363%201.936-4.646%202.675v9.124l8.01-4.611zm-9.61%2016.505v-9.13l-4.57%202.61-13.05%207.448v9.216l17.62-10.144zM1.602%207.719v31.068L19.22%2048.93v-9.214l-9.204-5.209-.003-.002-.004-.002c-.031-.018-.057-.044-.086-.066-.025-.02-.054-.036-.076-.058l-.002-.003c-.026-.025-.044-.056-.066-.084-.02-.027-.044-.05-.06-.078l-.001-.003c-.018-.03-.029-.066-.042-.1-.013-.03-.03-.058-.038-.09v-.001c-.01-.038-.012-.078-.016-.117-.004-.03-.012-.06-.012-.09v-.002-21.481L4.965%209.654%201.602%207.72zm8.81-5.994L2.405%206.334l8.005%204.609%208.006-4.61-8.006-4.608zm4.164%2028.764l4.645-2.674V7.719l-3.363%201.936-4.646%202.675v20.096l3.364-1.937zM39.243%207.164l-8.006%204.609%208.006%204.609%208.005-4.61-8.005-4.608zm-.801%2010.605l-4.646-2.675-3.363-1.936v9.124l4.645%202.674%203.364%201.937v-9.124zM20.02%2038.33l11.743-6.704%205.87-3.35-8-4.606-9.211%205.303-8.395%204.833%207.993%204.524z%22%20fill%3D%22%23FF2D20%22%20fill-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E" />
+
+
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -383,7 +387,7 @@
                             aria-expanded="true"
                             style="cursor:pointer;">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h4 class="mb-0"><i class="fas fa-scroll me-2"></i> Text Berjalan</h4>
+                                <h4 class="mb-0"><i class="fas fa-scroll me-2"></i> Teks Berjalan</h4>
                                 <span class="badge badge-light">{{ count($runningtext) }} Data</span>
                             </div>
                         </div>
@@ -401,7 +405,7 @@
                                         <input type="text"
                                             id="runningtextSearch"
                                             class="form-control"
-                                            placeholder="Cari running text...">
+                                            placeholder="Cari teks berjalan...">
                                         <button class="btn btn-outline-secondary" type="button" id="runningtextClearSearch">
                                             <i class="fas fa-times"></i>
                                         </button>
@@ -412,7 +416,7 @@
                                         type="button"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalTambahRunningText">
-                                        <i class="fas fa-plus me-1"></i> Tambah Text
+                                        <i class="fas fa-plus me-1"></i> Tambah Teks
                                     </button>
 
                                 </div>
@@ -422,7 +426,7 @@
                                     <table class="table table-hover align-middle mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Isi Running Text</th>
+                                                <th>Isi Teks Berjalan</th>
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
@@ -437,7 +441,7 @@
                                                             <i class="fas fa-edit"></i>
                                                         </button>
 
-                                                        <form action="{{ route('superadmin.runningtext.delete', $r->id_text) }}" method="POST" onsubmit="return confirm('Hapus running text ini?')" class="m-0">
+                                                        <form action="{{ route('superadmin.runningtext.delete', $r->id_text) }}" method="POST" onsubmit="return confirm('Hapus teks berjalan ini?')" class="m-0">
                                                             @csrf
                                                             @method('DELETE')
                                                             <button class="btn btn-danger btn-sm" type="submit">
@@ -451,7 +455,7 @@
 
                                             @if(count($runningtext) === 0)
                                             <tr>
-                                                <td colspan="2" class="text-center py-4">Belum ada running text</td>
+                                                <td colspan="2" class="text-center py-4">Belum ada teks berjalan</td>
                                             </tr>
                                             @endif
                                         </tbody>
@@ -533,17 +537,21 @@
                                                 <td data-label="Bagian">{{ $n->bagian ?? '-' }}</td>
                                                 <td data-label="Aksi" class="td-aksi">
                                                     <div class="aksi-group">
-                                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditNormalAdmin-{{ $n->id_admin }}">
+                                                        <button type="button"
+                                                            class="btn btn-warning btn-sm btn-edit-admin"
+                                                            data-id="{{ $n->id_admin }}"
+                                                            data-nip="{{ $n->nip }}"
+                                                            data-nama="{{ $n->nama_admin }}"
+                                                            data-bagian="{{ $n->bagian }}"
+                                                            data-role="{{ $n->role_admin }}">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
 
-                                                        <form action="{{ route('superadmin.normaladmin.delete', $n->id_admin) }}" method="POST" onsubmit="return confirm('Hapus admin ini?')" class="m-0">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button class="btn btn-danger btn-sm" type="submit">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </form>
+                                                        <button type="button"
+                                                            class="btn btn-danger btn-sm btn-delete-admin"
+                                                            data-id="{{ $n->id_admin }}">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -809,7 +817,7 @@
 
                             <div class="modal-header bg-primary text-white">
                                 <h5 class="modal-title">
-                                    <i class="fas fa-bullhorn me-2"></i> Tambah Running Text
+                                    <i class="fas fa-bullhorn me-2"></i> Tambah Teks Berjalan
                                 </h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
@@ -819,7 +827,7 @@
 
                                 <div class="modal-body">
 
-                                    <label class="form-label fw-bold">Isi Running Text</label>
+                                    <label class="form-label fw-bold">Isi Teks Berjalan</label>
                                     <textarea name="isi_text"
                                         class="form-control"
                                         rows="3"
@@ -1212,14 +1220,14 @@
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <div class="modal-header bg-warning">
-                                <h5 class="modal-title">Edit Running Text</h5>
+                                <h5 class="modal-title">Edit Teks Berjalan</h5>
                                 <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
 
                             <form action="{{ route('superadmin.runningtext.update', $r->id_text) }}" method="POST">
                                 @csrf
                                 <div class="modal-body">
-                                    <label class="form-label fw-bold">Isi Running Text:</label>
+                                    <label class="form-label fw-bold">Isi Teks Berjalan:</label>
                                     <textarea name="isi_text" class="form-control " rows="3" maxlength="100" required>{{ $r->isi_text }}</textarea>
                                 </div>
 
@@ -1235,11 +1243,13 @@
                 @endforeach
 
                 <div class="modal fade" id="modalEditNormalAdmin" data-bs-backdrop="false" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content">
-                            <div class="modal-header bg-warning">
-                                <h5 class="modal-title">Edit Admin</h5>
-                                <button class="btn-close" data-bs-dismiss="modal"></button>
+                            <div class="modal-header bg-warning text-white">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-user-edit me-2"></i> Edit Admin
+                                </h5>
+                                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
 
                             <form id="formEditAdmin">
@@ -1247,48 +1257,97 @@
                                 <input type="hidden" id="edit_id_admin">
 
                                 <div class="modal-body">
-                                    <label class="form-label fw-bold">NIP</label>
-                                    <input type="text" name="nip" id="edit_nip" class="form-control" maxlength="18" required>
+                                    <div class="row g-3">
+                                        <!-- NIP -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">NIP</label>
+                                            <input type="text"
+                                                name="nip"
+                                                id="edit_nip"
+                                                class="form-control"
+                                                maxlength="18"
+                                                required>
+                                        </div>
 
-                                    <label class="form-label fw-bold mt-2">Nama Admin</label>
-                                    <input type="text" name="nama_admin" id="edit_nama_admin" class="form-control" maxlength="50">
+                                        <!-- Role -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Role</label>
+                                            <select name="role_admin" id="edit_role_admin" class="form-select" required>
+                                                <option value="normaladmin">Admin</option>
+                                                <option value="superadmin">Super Admin</option>
+                                            </select>
+                                        </div>
 
-                                    <label class="form-label fw-bold mt-2">Bagian</label>
-                                    <input type="text" name="bagian" id="edit_bagian" class="form-control" maxlength="50">
+                                        <!-- Nama -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Nama Admin</label>
+                                            <input type="text"
+                                                name="nama_admin"
+                                                id="edit_nama_admin"
+                                                class="form-control"
+                                                maxlength="50"
+                                                required>
+                                        </div>
 
-                                    <label class="form-label fw-bold mt-2">Password (opsional)</label>
-                                    <div class="input-group">
-                                        <input type="password"
-                                            name="password_admin"
-                                            id="edit_password_admin"
-                                            class="form-control"
-                                            maxlength="20">
+                                        <!-- Bagian -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Bagian</label>
+                                            <input type="text"
+                                                name="bagian"
+                                                id="edit_bagian"
+                                                class="form-control"
+                                                maxlength="50"
+                                                required>
+                                        </div>
 
-                                        <button type="button"
-                                            class="btn btn-outline-secondary password-toggle"
-                                            data-target="edit_password_admin">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+                                        <!-- Password -->
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold">Password (opsional)</label>
+                                            <div class="input-group w-100">
+                                                <input type="password"
+                                                    name="password_admin"
+                                                    id="edit_password_admin"
+                                                    class="form-control"
+                                                    minlength="8"
+                                                    maxlength="20">
+
+                                                <button type="button"
+                                                    class="btn btn-outline-secondary password-toggle"
+                                                    data-target="edit_password_admin">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Konfirmasi Password -->
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold">Konfirmasi Password</label>
+                                            <div class="input-group w-100">
+                                                <input type="password"
+                                                    name="password_admin_confirmation"
+                                                    id="edit_password_admin_confirmation"
+                                                    class="form-control"
+                                                    minlength="8"
+                                                    maxlength="20">
+
+                                                <button type="button"
+                                                    class="btn btn-outline-secondary password-toggle"
+                                                    data-target="edit_password_admin_confirmation">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
 
-                                    <label class="form-label fw-bold mt-2">Konfirmasi</label>
-                                    <div class="input-group">
-                                        <input type="password"
-                                            name="password_admin_confirmation"
-                                            id="edit_password_admin_confirmation"
-                                            class="form-control"
-                                            maxlength="20">
-
-                                        <button type="button"
-                                            class="btn btn-outline-secondary password-toggle"
-                                            data-target="edit_password_admin_confirmation">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button class="btn btn-primary w-100">Simpan</button>
-                                    </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Batal
+                                    </button>
+                                    <button type="submit" class="btn btn-success">
+                                        Simpan Admin
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>

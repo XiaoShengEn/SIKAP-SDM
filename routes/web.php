@@ -16,7 +16,6 @@ Route::get('/', [WelcomeController::class, 'index']);
 // ===========================
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'loginProcess'])->name('login.process');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // (opsional) list kegiatan untuk publik / ajax
