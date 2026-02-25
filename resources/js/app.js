@@ -15,20 +15,13 @@ function dispatchBrowserEvent(name, detail) {
 }
 
 const browserHost = window.location.hostname;
-const reverbHost = import.meta.env.VITE_REVERB_HOST || browserHost;
-const reverbPort = import.meta.env.VITE_REVERB_PORT ?? 8081;
-const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || window.location.protocol.replace(':', '');
+const browserPort = window.location.port;
+const browserProtocol = window.location.protocol.replace(':', '');
 
-// window.Echo = new Echo({
-//     broadcaster: 'reverb',
-//     key: import.meta.env.VITE_REVERB_APP_KEY,
-//     wsHost: import.meta.env.VITE_REVERB_HOST,
-//     wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-//     wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-//     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
-//     enabledTransports: ['ws', 'wss'],
-//     disableStats: true,
-// });
+const reverbHost = import.meta.env.VITE_REVERB_HOST || browserHost;
+const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || browserProtocol;
+const reverbPort = import.meta.env.VITE_REVERB_PORT || browsertPort || (reverbScheme === 'https' ? 443 : 80);
+
 
 window.Echo = new Echo({
     broadcaster: 'reverb',
