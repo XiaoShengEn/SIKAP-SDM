@@ -10,27 +10,19 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
+
 function dispatchBrowserEvent(name, detail) {
     window.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
-const browserHost = window.location.hostname;
-const browserPort = window.location.port;
-const browserProtocol = window.location.protocol.replace(':', '');
-
-const reverbHost = import.meta.env.VITE_REVERB_HOST || browserHost;
-const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || browserProtocol;
-const reverbPort = import.meta.env.VITE_REVERB_PORT || browsertPort || (reverbScheme === 'https' ? 443 : 80);
-
-
 window.Echo = new Echo({
     broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: reverbHost,
-    wsPort: reverbPort,
-    wssPort: reverbPort,
-    forceTLS: reverbScheme === 'https',
-    enabledTransports: ['ws', 'wss'],
+    key: 'local',
+    wsHost: window.location.hostname,
+    wsPort: 8081,
+    wssPort: 8081,
+    forceTLS: false,
+    enabledTransports: ['ws'],
     disableStats: true,
 });
 
