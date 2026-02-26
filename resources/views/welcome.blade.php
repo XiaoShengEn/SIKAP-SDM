@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="{{ asset('welcome.css') }}">
 </head>
 
-<body>
+<body @if(!empty($backgroundImage)) style="--tv-bg-image: url('{{ $backgroundImage }}');" @endif>
 
     <div class="container-fluid">
 
@@ -127,11 +127,9 @@
                     <table class="table table-hover mb-0 py">
                         <thead class="sticky-thead-admin">
                             <tr>
-                                <th>Tanggal</th>
+                                <th>Tanggal dan Tempat</th>
                                 <th>Nama Kegiatan</th>
-                                <th>Tempat</th>
                                 <th>Disposisi</th>
-                                <th>Keterangan</th>
                             </tr>
                         </thead>
 
@@ -159,20 +157,19 @@
 
                             <tr class="{{ $cls }}" {{ $cls === 'agenda-today' ? 'data-pinned=true' : '' }}>
                                 <td>
-                                    {{ $date->translatedFormat('l, d F Y') }}
+                                    <div>{{ $date->translatedFormat('D, d M Y') }}</div>
                                     @if($jam)
-                                    - {{ $jam->format('H.i') }} WIB
+                                    <div>{{ $jam->format('H.i') }}</div>
                                     @endif
+                                    <div class="agenda-place">{{ $item->tempat ?? '-' }}</div>
                                 </td>
-                                <td>{{ $item->nama_kegiatan }}</td>
-                                <td>{{ $item->tempat }}</td>
+                                <td class="agenda-nama">{{ $item->nama_kegiatan }}</td>
                                 <td>{{ $item->disposisi }}</td>
-                                <td>{{ $item->keterangan ?? '-' }}</td>
                             </tr>
 
                             @empty
                             <tr>
-                                <td colspan="5" class="text-start text-muted py-3">
+                                <td colspan="3" class="text-start text-muted py-3">
                                     Belum ada agenda
                                 </td>
                             </tr>

@@ -22,6 +22,96 @@ use App\Events\TvRefreshRequested;
 
 class SuperAdminController extends Controller
 {
+    private function tvBackgroundUploadPath(): string
+    {
+        return $this->ensurePublicUploadPath('images/tv-backgrounds');
+    }
+
+    private function tvBackgroundMetaPath(): string
+    {
+        return storage_path('app/tv_backgrounds.json');
+    }
+
+    private function loadTvBackgroundMeta(): array
+    {
+        $path = $this->tvBackgroundMetaPath();
+        if (!File::exists($path)) {
+            return [];
+        }
+
+        $raw = File::get($path);
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    private function saveTvBackgroundMeta(array $items): void
+    {
+        $items = array_map(function ($item) {
+            return [
+                'id' => (string) ($item['id'] ?? ''),
+                'filename' => (string) ($item['filename'] ?? ''),
+                'original_name' => (string) ($item['original_name'] ?? ''),
+                'is_active' => (bool) ($item['is_active'] ?? false),
+                'created_at' => (string) ($item['created_at'] ?? ''),
+            ];
+        }, $items);
+
+        $path = $this->tvBackgroundMetaPath();
+        File::ensureDirectoryExists(dirname($path));
+        File::put(
+            $path,
+            json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
+    }
+
+    private function getTvBackgroundItems(): array
+    {
+        $items = collect($this->loadTvBackgroundMeta())
+            ->filter(fn($item) => is_array($item) && !empty($item['id']) && !empty($item['filename']))
+            ->map(function ($item) {
+                $full = public_path('images/tv-backgrounds/' . $item['filename']);
+                if (!File::exists($full)) {
+                    return null;
+                }
+
+                return [
+                    'id' => (string) $item['id'],
+                    'filename' => (string) $item['filename'],
+                    'original_name' => (string) ($item['original_name'] ?? $item['filename']),
+                    'is_active' => (bool) ($item['is_active'] ?? false),
+                    'created_at' => (string) ($item['created_at'] ?? ''),
+                    'url' => asset('images/tv-backgrounds/' . $item['filename']) . '?v=' . (@filemtime($full) ?: time()),
+                ];
+            })
+            ->filter()
+            ->values();
+
+        if ($items->isNotEmpty() && !$items->contains(fn($item) => $item['is_active'])) {
+            $firstId = $items->first()['id'];
+            $items = $items->map(function ($item) use ($firstId) {
+                $item['is_active'] = $item['id'] === $firstId;
+                return $item;
+            });
+        }
+
+        return $items
+            ->sortByDesc(fn($item) => $item['created_at'])
+            ->values()
+            ->all();
+    }
+
+    private function resolveTvBackgroundImage(): ?string
+    {
+        $items = collect($this->getTvBackgroundItems());
+        if ($items->isEmpty()) {
+            return null;
+        }
+
+        $active = $items->firstWhere('is_active', true) ?? $items->first();
+        return $active['url'] ?? null;
+    }
+
     private function ensurePublicUploadPath(string $relativePath): string
     {
         $fullPath = public_path(trim($relativePath, '/'));
@@ -93,13 +183,19 @@ class SuperAdminController extends Controller
         $kegiatan = Kegiatan::orderBy('tanggal_kegiatan', 'asc')->get();
         $runningtext = RunningText::orderBy('id_text')->get();
         $normaladmin = User::whereIn('role_admin', ['normaladmin', 'superadmin'])->get();
+        $backgroundItems = $this->getTvBackgroundItems();
+        $backgroundCount = count($backgroundItems);
+        $backgroundImage = $this->resolveTvBackgroundImage();
 
         return view('admin.superadmin', compact(
             'profil',
             'videos',
             'kegiatan',
             'runningtext',
-            'normaladmin'
+            'normaladmin',
+            'backgroundItems',
+            'backgroundCount',
+            'backgroundImage'
         ));
     }
 
@@ -444,6 +540,95 @@ public function kegiatanTable()
         $this->safeBroadcast('runningtext', 'deleted', (int) $id);
 
         return back()->withFragment('runningtext')->with('success', 'Running text berhasil dihapus!');
+    }
+
+    public function backgroundUpdate(Request $request)
+    {
+        $request->validate([
+            'background_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ]);
+
+        $file = $request->file('background_image');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $uploadPath = $this->tvBackgroundUploadPath();
+        $items = $this->getTvBackgroundItems();
+
+        $filename = date('YmdHis') . '_' . bin2hex(random_bytes(4)) . ".{$extension}";
+        $file->move($uploadPath, $filename);
+
+        $items[] = [
+            'id' => uniqid('bg_'),
+            'filename' => $filename,
+            'original_name' => $file->getClientOriginalName(),
+            'is_active' => count($items) === 0,
+            'created_at' => now('Asia/Jakarta')->toDateTimeString(),
+        ];
+
+        $this->saveTvBackgroundMeta($items);
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('background', 'created');
+
+        return back()->withFragment('background')->with('success', 'Background TV berhasil ditambahkan!');
+    }
+
+    public function backgroundActivate(string $id)
+    {
+        $items = $this->getTvBackgroundItems();
+        $found = false;
+
+        $items = array_map(function ($item) use ($id, &$found) {
+            $isTarget = $item['id'] === $id;
+            if ($isTarget) {
+                $found = true;
+            }
+            $item['is_active'] = $isTarget;
+            return $item;
+        }, $items);
+
+        if (!$found) {
+            return back()->withFragment('background')->with('error', 'Data background tidak ditemukan.');
+        }
+
+        $this->saveTvBackgroundMeta($items);
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('background', 'activated');
+
+        return back()->withFragment('background')->with('success', 'Background TV berhasil diaktifkan.');
+    }
+
+    public function backgroundDelete(string $id)
+    {
+        $items = $this->getTvBackgroundItems();
+        $deleted = null;
+
+        $remaining = [];
+        foreach ($items as $item) {
+            if ($item['id'] === $id) {
+                $deleted = $item;
+                continue;
+            }
+            $remaining[] = $item;
+        }
+
+        if (!$deleted) {
+            return back()->withFragment('background')->with('error', 'Data background tidak ditemukan.');
+        }
+
+        $path = public_path('images/tv-backgrounds/' . $deleted['filename']);
+        if (File::exists($path)) {
+            @unlink($path);
+        }
+
+        $hasActive = collect($remaining)->contains(fn($item) => (bool) ($item['is_active'] ?? false));
+        if (!$hasActive && count($remaining) > 0) {
+            $remaining[0]['is_active'] = true;
+        }
+
+        $this->saveTvBackgroundMeta($remaining);
+        $this->bumpTvCacheVersion();
+        $this->safeBroadcast('background', 'deleted');
+
+        return back()->withFragment('background')->with('success', 'Background TV berhasil dihapus.');
     }
 
     // ============================================================

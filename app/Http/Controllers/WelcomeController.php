@@ -5,9 +5,44 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class WelcomeController extends Controller
 {
+    private function resolveTvBackgroundImage(): ?string
+    {
+        $metaPath = storage_path('app/tv_backgrounds.json');
+        if (File::exists($metaPath)) {
+            $items = json_decode(File::get($metaPath), true);
+            if (is_array($items) && count($items) > 0) {
+                $active = collect($items)->firstWhere('is_active', true) ?? $items[0];
+                $filename = $active['filename'] ?? null;
+
+                if (!empty($filename)) {
+                    $full = public_path('images/tv-backgrounds/' . $filename);
+                    if (File::exists($full)) {
+                        return asset('images/tv-backgrounds/' . $filename) . '?v=' . (@filemtime($full) ?: time());
+                    }
+                }
+            }
+        }
+
+        $candidates = glob(public_path('images/tv-background.*')) ?: [];
+        if (count($candidates) === 0) {
+            return null;
+        }
+
+        $latest = collect($candidates)
+            ->sortByDesc(fn($path) => @filemtime($path) ?: 0)
+            ->first();
+
+        if (!$latest) {
+            return null;
+        }
+
+        return asset('images/' . basename($latest)) . '?v=' . (@filemtime($latest) ?: time());
+    }
+
     private function tvCacheVersion(): int
     {
         return (int) Cache::get('tv:data:version', 1);
@@ -58,22 +93,21 @@ class WelcomeController extends Controller
                 ->toArray();
         });
 
-        if (count($ultahText) === 0) {
-            $ultahText = ['-'];
-        }
-
         $runningtext = array_merge($ultahText, $runningtext);
 
         if (count($runningtext) === 0) {
             $runningtext = ['-'];
         }
 
+        $backgroundImage = $this->resolveTvBackgroundImage();
+
         return view('welcome', compact(
             'profil',
             'videos',
             'playlist',
             'agendaKegiatan',
-            'runningtext'
+            'runningtext',
+            'backgroundImage'
         ));
     }
 }

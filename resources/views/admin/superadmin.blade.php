@@ -73,6 +73,11 @@
                 <i class="fas fa-users-cog"></i>
                 <span class="text">Kelola Admin</span>
             </a>
+
+            <a href="#background" class="sidebar-item">
+                <i class="fas fa-image"></i>
+                <span class="text">Background TV</span>
+            </a>
         </nav>
     </aside>
 
@@ -581,6 +586,113 @@
                         </div>
                 </section>
 
+                <section id="background" class="mb-5">
+                    <div class="card modern-card">
+                        <div class="card-header bg-primary text-white modern-card-header"
+                            role="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#backgroundBody"
+                            aria-expanded="true"
+                            style="cursor:pointer;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0"><i class="fas fa-image me-2"></i> Background TV</h4>
+                                <span class="badge badge-light">{{ $backgroundCount }} Data</span>
+                            </div>
+                        </div>
+
+                        <div id="backgroundBody" class="collapse">
+                            <div class="card-body">
+                                <div class="row g-4 align-items-start">
+                                    <div class="col-lg-7">
+                                        <form action="{{ route('superadmin.background.update') }}" method="POST" enctype="multipart/form-data">
+                                            @csrf
+                                            <label class="form-label fw-bold">Upload Gambar Kantor</label>
+                                            <input type="file"
+                                                name="background_image"
+                                                class="form-control"
+                                                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                                required>
+                                            <small class="text-muted d-block mt-2">Rekomendasi landscape 16:9 agar pas untuk layar TV.</small>
+                                            <button type="submit" class="btn btn-success mt-3">
+                                                <i class="fas fa-plus me-1"></i> Tambah Background
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="col-lg-5">
+                                        <label class="form-label fw-bold d-block">Preview Saat Ini</label>
+                                        @if (!empty($backgroundImage))
+                                        <img src="{{ $backgroundImage }}" alt="Preview background TV" class="img-fluid rounded border shadow-sm">
+                                        @else
+                                        <div class="alert alert-secondary mb-0">Belum ada gambar background. Upload dulu untuk dipakai di halaman TV.</div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+
+                                <div class="admin-table-wrapper-table">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="sticky-thead-admin">
+                                            <tr>
+                                                <th>Preview</th>
+                                                <th>Nama File</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse ($backgroundItems as $bg)
+                                            <tr>
+                                                <td style="width: 180px;">
+                                                    <img src="{{ $bg['url'] }}" alt="background {{ $bg['id'] }}" class="img-fluid rounded border" style="max-height:80px; object-fit:cover;">
+                                                </td>
+                                                <td>{{ $bg['original_name'] }}</td>
+                                                <td>
+                                                    @if ($bg['is_active'])
+                                                    <span class="badge bg-success">Aktif</span>
+                                                    @else
+                                                    <span class="badge bg-secondary">Nonaktif</span>
+                                                    @endif
+                                                </td>
+                                                <td class="td-aksi">
+                                                    <div class="aksi-group">
+                                                        @if (!$bg['is_active'])
+                                                        <form action="{{ route('superadmin.background.activate', $bg['id']) }}" method="POST" class="m-0">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-primary">
+                                                                <i class="fas fa-check-circle"></i>
+                                                            </button>
+                                                        </form>
+                                                        @else
+                                                        <button type="button" class="btn btn-sm btn-success" disabled>
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </button>
+                                                        @endif
+
+                                                        <form action="{{ route('superadmin.background.delete', $bg['id']) }}" method="POST" class="m-0" onsubmit="return confirm('Hapus background ini?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center py-4">Belum ada data background</td>
+                                            </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- ========================= MODALS ========================= -->
 
                 {{-- Logout --}}
@@ -988,6 +1100,7 @@
                                     <label class="form-label fw-bold">Nama:</label>
                                     <input type="text"
                                         name="nama_pimpinan"
+                                        value="{{ $p->nama_pimpinan }}"
                                         class="form-control "
                                         maxlength="100"
                                         required>
@@ -995,6 +1108,7 @@
                                     <label class="form-label fw-bold">Jabatan:</label>
                                     <input type="text"
                                         name="jabatan_pimpinan"
+                                        value="{{ $p->jabatan_pimpinan }}"
                                         class="form-control "
                                         maxlength="100"
                                         required>

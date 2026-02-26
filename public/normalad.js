@@ -106,7 +106,7 @@ function getTanggalClass(tanggalStr) {
                 row.innerHTML = `
                     <td>
                         <div>${k.tanggal_label}</div>
-                        ${k.jam ? `<div class="small">${k.jam} WIB</div>` : ""}
+                        ${k.jam ? `<div class="small">${k.jam}</div>` : ""}
                     </td>
                     <td>${k.nama_kegiatan}</td>
                     <td>${k.tempat || "-"}</td>
@@ -295,7 +295,7 @@ formEdit.addEventListener("submit", async function (e) {
 });
 
 /* AUTO LOGOUT ADMIN */
-const AUTO_LOGOUT_INTERVAL = 3 * 60 * 1000;
+const AUTO_LOGOUT_INTERVAL = 10 * 60 * 1000;
 let autoLogoutTimer;
 
 function resetAutoLogoutTimer() {

@@ -53,7 +53,7 @@ class NormalAdminController extends Controller
                     'id' => $k->kegiatan_id,
                     'tanggal_kegiatan' => $k->tanggal_kegiatan,
                     'tanggal_label' => Carbon::parse($k->tanggal_kegiatan)
-                        ->translatedFormat('l, d F Y'),
+                        ->translatedFormat('D, d M Y'),
                     'jam' => $k->jam,
                     'nama_kegiatan' => $k->nama_kegiatan,
                     'tempat' => $k->tempat,

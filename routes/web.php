@@ -52,6 +52,9 @@ Route::prefix('superadmin')
         Route::post('/runningtext/store', [SuperAdminController::class, 'runningtextStore'])->name('superadmin.runningtext.store');
         Route::post('/runningtext/update/{id}', [SuperAdminController::class, 'runningtextUpdate'])->name('superadmin.runningtext.update');
         Route::delete('/runningtext/delete/{id}', [SuperAdminController::class, 'runningtextDelete'])->name('superadmin.runningtext.delete');
+        Route::post('/background/update', [SuperAdminController::class, 'backgroundUpdate'])->name('superadmin.background.update');
+        Route::post('/background/activate/{id}', [SuperAdminController::class, 'backgroundActivate'])->name('superadmin.background.activate');
+        Route::delete('/background/delete/{id}', [SuperAdminController::class, 'backgroundDelete'])->name('superadmin.background.delete');
 
         // KELOLA ADMIN
         Route::get('/normaladmin', [SuperAdminController::class, 'normalAdminIndex'])->name('superadmin.normaladmin');
@@ -80,4 +83,3 @@ Route::prefix('admin')
 Route::get('/phpinfo', function () {
     phpinfo();
 });
-

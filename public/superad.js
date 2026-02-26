@@ -531,7 +531,7 @@ document.querySelectorAll('.modern-card-header').forEach(header => {
 /* =================================
  AUTO LOGOUT BERDASARKAN KETIDAKAKTIFAN USER (FIXED)
 ================================= */
-const AUTO_LOGOUT_INTERVAL = 3 * 60 * 1000;
+const AUTO_LOGOUT_INTERVAL = 10 * 60 * 1000;
 let autoLogoutTimer;
 
 function resetAutoLogoutTimer() {
@@ -683,7 +683,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 row.innerHTML = `
                     <td>
                         <div>${k.tanggal_label ?? k.tanggal_kegiatan}</div>
-                        ${jamClean ? `<div class="small">${jamClean} WIB</div>` : ""}
+                        ${jamClean ? `<div class="small">${jamClean}</div>` : ""}
                     </td>
                     <td>${k.nama_kegiatan}</td>
                     <td>${k.tempat || "-"}</td>
