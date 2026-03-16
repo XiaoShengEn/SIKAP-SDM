@@ -658,8 +658,11 @@ public function kegiatanTable()
                 'role_admin'     => 'required|in:normaladmin,superadmin',
             ], [
                 'nama_admin.unique' => 'Nama sudah ditambahkan sebagai admin.',
-                'nip.unique'        => 'NIP sudah ditambahkan sebagai admin.',
+                'nip.unique'        => 'NIP sudah terdaftar sebagai admin.',
+                'nip.digits'        => 'NIP harus terdiri dari 18 digit.',
+                'password_admin.required' => 'Password wajib diisi.',
                 'password_admin.min' => 'Password minimal 8 karakter.',
+                'password_admin.max' => 'Password maksimal 20 karakter.',
                 'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
             ]);
 
@@ -701,9 +704,11 @@ public function kegiatanTable()
                 'password_admin' => 'nullable|string|min:8|max:20|confirmed',
             ], [
                 'nama_admin.unique' => 'Nama sudah digunakan oleh admin lain.',
-                'nip.unique'        => 'NIP sudah digunakan oleh admin lain.',
+                'nip.unique'        => 'Maaf NIP sudah terdaftar untuk admin lain.',
+                'nip.digits'        => 'NIP harus terdiri dari 18 digit.',
                 'role_admin.in'     => 'Role tidak valid.',
                 'password_admin.min' => 'Password minimal 8 karakter.',
+                'password_admin.max' => 'Password maksimal 20 karakter.',
                 'password_admin.confirmed' => 'Konfirmasi password tidak sama.',
             ]);
 
