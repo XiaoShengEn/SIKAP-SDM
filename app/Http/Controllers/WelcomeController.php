@@ -27,20 +27,7 @@ class WelcomeController extends Controller
             }
         }
 
-        $candidates = glob(public_path('images/tv-background.*')) ?: [];
-        if (count($candidates) === 0) {
-            return null;
-        }
-
-        $latest = collect($candidates)
-            ->sortByDesc(fn($path) => @filemtime($path) ?: 0)
-            ->first();
-
-        if (!$latest) {
-            return null;
-        }
-
-        return asset('images/' . basename($latest)) . '?v=' . (@filemtime($latest) ?: time());
+        return null;
     }
 
     private function tvCacheVersion(): int
