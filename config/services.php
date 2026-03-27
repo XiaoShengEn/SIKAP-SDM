@@ -40,4 +40,9 @@ return [
         'token' => env('KEMENDAGRI_API_TOKEN'),
     ],
 
+    'agenda_api' => [
+        'key' => env('AGENDA_API_KEY'),
+        'timezone' => env('AGENDA_API_TIMEZONE', env('APP_TIMEZONE', 'Asia/Jakarta')),
+    ],
+
 ];

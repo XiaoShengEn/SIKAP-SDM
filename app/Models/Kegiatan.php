@@ -12,7 +12,7 @@ class Kegiatan extends Model
 
     protected $table = 'tb_kegiatan';
     protected $primaryKey = 'kegiatan_id';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'tanggal_kegiatan',
@@ -21,6 +21,11 @@ class Kegiatan extends Model
         'tempat',
         'disposisi',
         'keterangan',
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     // ✅ HARUS DI DALAM CLASS
